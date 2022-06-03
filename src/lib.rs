@@ -302,14 +302,14 @@ impl RadioDateTimeUtils {
         if self.leap_second.is_none() {
             return 'x';
         }
-        if (self.leap_second.unwrap() & LEAP_ANNOUNCED) != 0 {
-            'l'
-        } else if (self.leap_second.unwrap() & LEAP_PROCESSED) != 0 {
+        if (self.leap_second.unwrap() & LEAP_PROCESSED) != 0 {
             'L'
         } else if (self.leap_second.unwrap() & LEAP_NON_ZERO) != 0 {
             '1'
         } else if (self.leap_second.unwrap() & LEAP_MISSING) != 0 {
             'm'
+        } else if (self.leap_second.unwrap() & LEAP_ANNOUNCED) != 0 {
+            'l'
         } else {
             ' ' // LEAP_NONE
         }

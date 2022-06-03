@@ -3,7 +3,7 @@ name = "radio_datetime_utils"
 version = "0.1.0"
 edition = "2021"
 authors = [ "René Ladan <rene0+github@freedom.nl>" ]
-description = "Definition of date/time structures commonly useful for time station decoders"
+description = "Utilities and definitions for date/time structures for time station decoders."
 repository = "https://github.com/rene0/radio_datetime_utils"
 license = "MIT OR Apache-2.0"
 

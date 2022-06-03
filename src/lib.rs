@@ -119,7 +119,7 @@ pub fn last_day(year: u8, month: u8, day: u8, weekday: u8) -> Option<u8> {
     if !(0..=99).contains(&year)
         || !(1..=12).contains(&month)
         || !(1..=31).contains(&day)
-        || !(1..=7).contains(&weekday)
+        || !(0..=7).contains(&weekday)
     {
         return None;
     }
@@ -201,9 +201,14 @@ impl RadioDateTimeUtils {
      * Adds one minute to the current date and time, returns if the operation succeeded.
      *
      * * Years are limited to 2 digits, so this function wraps after 100 years.
-     * * The day of the week is a number between 1 (Monday) and 7 (Sunday).
+     *
+     * # Arguments
+     * * `min_weekday` - the numeric value of the first day of the week, e.g.,
+     *                   1 (Monday) for DCF77 or 0 (Sunday) for NPL
+     * * `max_weekday` - the numeric value of the last day of the week, e.g.,
+     *                   7 (Sunday) for DCF77 or 6 (Saturday) for NPL
      */
-    pub fn add_minute(&mut self) -> bool {
+    pub fn add_minute(&mut self, min_weekday: u8, max_weekday: u8) -> bool {
         if self.minute.is_none()
             || self.hour.is_none()
             || self.day.is_none()
@@ -238,8 +243,8 @@ impl RadioDateTimeUtils {
                     return false;
                 }
                 t_weekday += 1;
-                if t_weekday == 8 {
-                    t_weekday = 1;
+                if t_weekday == max_weekday + 1 {
+                    t_weekday = min_weekday;
                 }
                 t_day += 1;
                 if t_day > old_last_day.unwrap() {

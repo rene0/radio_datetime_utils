@@ -261,18 +261,6 @@ impl RadioDateTimeUtils {
         true
     }
 
-    /// Determine the length of this minute in seconds, tolerate None as leap second state.
-    pub fn get_minute_length(&self) -> u8 {
-        if self.leap_second.is_none() {
-            return 59;
-        }
-        59 + if (self.leap_second.unwrap() & LEAP_PROCESSED) != 0 {
-            1
-        } else {
-            0
-        }
-    }
-
     /**
      * Determine which if the given date/time values made an unexpected jump.
      */

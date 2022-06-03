@@ -91,9 +91,7 @@ pub fn get_parity(
     }
     let mut par = bit_buffer[parity].unwrap();
     for bit in &bit_buffer[p0..=p1] {
-        if bit.is_none() {
-            return None;
-        }
+        (*bit)?;
         par ^= bit.unwrap();
     }
     Some(par)

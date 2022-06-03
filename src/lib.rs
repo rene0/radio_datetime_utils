@@ -41,9 +41,9 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     if p1 - p0 >= MAX_RANGE {
         return None;
     }
-    let mut r: Vec<Option<bool>, MAX_RANGE> = Vec::new();
+    let mut r: Vec<bool, MAX_RANGE> = Vec::new();
     for b in &bit_buffer[p0..=p1] {
-        if r.push(*b) == Err(*b) {
+        if b.is_none() || r.push(b.unwrap()).is_err() {
             return None;
         }
     }
@@ -54,8 +54,7 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     let mut bcd = 0;
     let mut mult = 1;
     for bit in r {
-        bit?;
-        bcd += mult * if bit.unwrap() { 1 } else { 0 };
+        bcd += mult * if bit { 1 } else { 0 };
         mult *= 2;
         if mult == 16 {
             if bcd > 9 {

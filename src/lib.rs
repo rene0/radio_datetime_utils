@@ -375,48 +375,37 @@ mod tests {
         assert_eq!(time_diff(2, 2), 0);
     }
 
+    const BIT_BUFFER: [Option<bool>; 10] = [
+        Some(false),
+        Some(true),
+        Some(false),
+        Some(false),
+        Some(true),
+        Some(true),
+        Some(true),
+        Some(true),
+        None,
+        Some(false),
+    ];
+
     #[test]
     fn test_get_bcd_value() {
-        let bit_buffer: [Option<bool>; 10] = [
-            Some(false),
-            Some(true),
-            Some(false),
-            Some(false),
-            Some(true),
-            Some(true),
-            Some(true),
-            Some(true),
-            None,
-            Some(false),
-        ];
-        assert_eq!(get_bcd_value(&bit_buffer[0..=4], 0, 4), Some(12));
-        assert_eq!(get_bcd_value(&bit_buffer[1..=1], 0, 0), Some(1)); // single-bit value, must be a slice
-        assert_eq!(get_bcd_value(&bit_buffer[0..=7], 0, 7), None); // too large for BCD, test 8 bit range
-        assert_eq!(get_bcd_value(&bit_buffer[4..=7], 0, 3), None); // too large for BCD
-        assert_eq!(get_bcd_value(&bit_buffer[7..=9], 0, 2), None); // has a None value
-        assert_eq!(get_bcd_value(&bit_buffer, 0, 9), None); // range too wide
-        assert_eq!(get_bcd_value(&bit_buffer[0..=5], 5, 0), Some(13)); // backwards
-        assert_ne!(get_bcd_value(&bit_buffer[0..=5], 5, 0), Some(32)); // backwards with forwards result
+        assert_eq!(get_bcd_value(&BIT_BUFFER[0..=4], 0, 4), Some(12));
+        assert_eq!(get_bcd_value(&BIT_BUFFER[1..=1], 0, 0), Some(1)); // single-bit value, must be a slice
+        assert_eq!(get_bcd_value(&BIT_BUFFER[0..=7], 0, 7), None); // too large for BCD, test 8 bit range
+        assert_eq!(get_bcd_value(&BIT_BUFFER[4..=7], 0, 3), None); // too large for BCD
+        assert_eq!(get_bcd_value(&BIT_BUFFER[7..=9], 0, 2), None); // has a None value
+        assert_eq!(get_bcd_value(&BIT_BUFFER, 0, 9), None); // range too wide
+        assert_eq!(get_bcd_value(&BIT_BUFFER[0..=5], 5, 0), Some(13)); // backwards
+        assert_ne!(get_bcd_value(&BIT_BUFFER[0..=5], 5, 0), Some(32)); // backwards with forwards result
     }
 
     #[test]
     fn test_get_parity() {
-        let bit_buffer: [Option<bool>; 10] = [
-            Some(false),
-            Some(true),
-            Some(false),
-            Some(false),
-            Some(true),
-            Some(true),
-            Some(true),
-            Some(true),
-            None,
-            Some(false),
-        ];
-        assert_eq!(get_parity(&bit_buffer[0..=4], 0, 3, 4), Some(false));
-        assert_eq!(get_parity(&bit_buffer[0..=4], 0, 4, 3), None); // parity in middle of range
-        assert_eq!(get_parity(&bit_buffer[7..=9], 0, 1, 2), None); // has a None value
-        assert_eq!(get_parity(&bit_buffer[0..=3], 0, 2, 3), Some(true));
-        assert_eq!(get_parity(&bit_buffer[0..=3], 3, 1, 0), Some(true)); // backwards
+        assert_eq!(get_parity(&BIT_BUFFER[0..=4], 0, 3, 4), Some(false));
+        assert_eq!(get_parity(&BIT_BUFFER[0..=4], 0, 4, 3), None); // parity in middle of range
+        assert_eq!(get_parity(&BIT_BUFFER[7..=9], 0, 1, 2), None); // has a None value
+        assert_eq!(get_parity(&BIT_BUFFER[0..=3], 0, 2, 3), Some(true));
+        assert_eq!(get_parity(&BIT_BUFFER[0..=3], 3, 1, 0), Some(true)); // backwards
     }
 }

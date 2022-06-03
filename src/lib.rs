@@ -125,8 +125,7 @@ pub fn last_day(year: u8, month: u8, day: u8, weekday: u8) -> Option<u8> {
     }
 
     if month == 2 {
-        if (year % 4 == 0 && year != 0)
-            || (year == 0 && is_leap_century(year, month, day, weekday))
+        if (year % 4 == 0 && year != 0) || (year == 0 && is_leap_century(year, month, day, weekday))
         {
             return Some(29);
         }

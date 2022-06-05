@@ -125,7 +125,7 @@ pub fn last_day(year: u8, month: u8, day: u8, weekday: u8) -> Option<u8> {
     }
 
     if month == 2 {
-        if (year != 0 && year % 4 == 0) || (year == 0 && is_leap_century(year, month, day, weekday))
+        if (year != 0 && year % 4 == 0) || (year == 0 && is_leap_century(day, weekday))
         {
             return Some(29);
         }
@@ -323,24 +323,18 @@ impl RadioDateTimeUtils {
 
 /// Checks if the century based on the given date is divisible by 400.
 /// Based on xx00-02-28 is a Monday <=> xx00 is a leap year
-fn is_leap_century(year: u8, month: u8, day: u8, weekday: u8) -> bool {
-    let day_in_leap_year: [i16; 12] = [0, 31, 60, 91, 121, 152, 182, 213, 244, 274, 305, 335];
-
-    let mut wd = weekday;
-    // Subtract year days from weekday, including normal leap years:
-    wd = (wd - year - year / 4 - if year % 4 > 0 { 1 } else { 0 }) % 7;
+fn is_leap_century(day: u8, weekday: u8) -> bool {
+    let mut wd = weekday % 7;
     if wd == 0 {
         wd = 7;
     }
 
     // Week day 1 is a Monday, assume this is a leap year.
     // If so, we should reach Monday xx00-02-28
-    let year_day = day_in_leap_year[(month - 1) as usize] + day as i16;
-    if year_day < 60 {
-        // At or before 02-28
-        year_day + 7 * ((59 - year_day) / 7) + (8 - wd as i16) == 59
+    if day < 29 {
+        day + 7 * ((28 - day) / 7) + 8 - wd == 28
     } else {
-        year_day - 7 * ((year_day - 59) / 7) + 1 - wd as i16 == 59
+        day - 7 * ((day - 28) / 7) + 1 - wd == 28
     }
 }
 

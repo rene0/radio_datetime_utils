@@ -353,7 +353,7 @@ impl Default for RadioDateTimeUtils {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_bcd_value, get_parity, time_diff};
+    use crate::{get_bcd_value, get_parity, last_day, time_diff};
 
     #[test]
     fn test_time_diff() {
@@ -396,5 +396,19 @@ mod tests {
         assert_eq!(get_parity(&BIT_BUFFER[7..=9], 0, 1, 2), None); // has a None value
         assert_eq!(get_parity(&BIT_BUFFER[0..=3], 0, 2, 3), Some(true));
         assert_eq!(get_parity(&BIT_BUFFER[0..=3], 3, 1, 0), Some(true)); // backwards
+    }
+
+    #[test]
+    fn test_last_day() {
+        assert_eq!(last_day(22, 6, 5, 7), Some(30)); // today
+        assert_eq!(last_day(100, 6, 5, 7), None); // year too large
+        assert_eq!(last_day(22, 2, 29, 4), Some(28)); // non-existent date
+        assert_eq!(last_day(0, 1, 1, 1), Some(31)); // first day, weekday off/do-not-care
+        assert_eq!(last_day(20, 2, 3, 1), Some(29)); // regular leap year
+        assert_eq!(last_day(20, 2, 3, 4), Some(29)); // same date with bogus weekday
+        assert_eq!(last_day(0, 2, 1, 2), Some(29)); // century-leap-year, day/weekday must match, this Tuesday 2000-02-01
+        assert_eq!(last_day(0, 2, 1, 1), Some(28)); // century-regular-year, Monday 2100-02-01
+        assert_eq!(last_day(0, 2, 6, 7), Some(29)); // century-leap-year, Sunday 2000-02-06, DCF77
+        assert_eq!(last_day(0, 2, 6, 0), Some(29)); // century-leap-year, Sunday 2000-02-06, NPL
     }
 }

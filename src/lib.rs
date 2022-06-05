@@ -121,20 +121,18 @@ pub fn last_day(year: u8, month: u8, day: u8, weekday: u8) -> Option<u8> {
         || !(1..=31).contains(&day)
         || !(0..=7).contains(&weekday)
     {
-        return None;
-    }
-
-    if month == 2 {
-        if (year != 0 && year % 4 == 0) || (year == 0 && is_leap_century(day, weekday))
-        {
-            return Some(29);
+        None
+    } else if month == 2 {
+        if (year != 0 && year % 4 == 0) || (year == 0 && is_leap_century(day, weekday)) {
+            Some(29)
+        } else {
+            Some(28)
         }
-        return Some(28);
+    } else if month == 4 || month == 6 || month == 9 || month == 11 {
+        Some(30)
+    } else {
+        Some(31)
     }
-    if month == 4 || month == 6 || month == 9 || month == 11 {
-        return Some(30);
-    }
-    Some(31)
 }
 
 /// DST change has been announced

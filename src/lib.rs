@@ -434,7 +434,10 @@ impl RadioDateTimeUtils {
                     t_month += 1;
                     if t_month == 13 {
                         t_month = 1;
-                        t_year = (t_year + 1) % 100;
+                        t_year += 1;
+                        if t_year == 100 {
+                            t_year = 0;
+                        }
                     }
                 }
             }

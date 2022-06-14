@@ -451,24 +451,81 @@ impl RadioDateTimeUtils {
         true
     }
 
-    /**
-     * Determine which if the given date/time values made an unexpected jump.
-     */
-    pub fn set_jumps(
-        &mut self,
-        year: Option<u8>,
-        month: Option<u8>,
-        day: Option<u8>,
-        weekday: Option<u8>,
-        hour: Option<u8>,
-        minute: Option<u8>,
-    ) {
-        self.jump_year = year != self.year;
-        self.jump_month = month != self.month;
-        self.jump_day = day != self.day;
-        self.jump_weekday = weekday != self.weekday;
-        self.jump_hour = hour != self.hour;
-        self.jump_minute = minute != self.month;
+    pub fn set_year(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
+        let year = if value.is_some() && (0..=99).contains(&value.unwrap()) && valid {
+            value
+        } else {
+            self.year
+        };
+        self.jump_year = check_jump && year != self.year;
+        self.year = year;
+    }
+
+    pub fn set_month(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
+        let month = if value.is_some() && (1..=12).contains(&value.unwrap()) && valid {
+            value
+        } else {
+            self.month
+        };
+        self.jump_month = check_jump && month != self.month;
+        self.month = month;
+    }
+
+    pub fn set_weekday(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
+        let weekday = if value.is_some()
+            && (self.min_weekday..=self.max_weekday).contains(&value.unwrap())
+            && valid
+        {
+            value
+        } else {
+            self.weekday
+        };
+        self.jump_weekday = check_jump && weekday != self.weekday;
+        self.weekday = weekday;
+    }
+
+    pub fn set_day(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
+        let mut day = self.day;
+        let mut days_in_month = Some(31);
+
+        if let Some(s_year) = self.year {
+            if let Some(s_month) = self.month {
+                if let Some(s_value) = value {
+                    if let Some(s_weekday) = self.weekday {
+                        days_in_month = last_day(s_year, s_month, s_value, s_weekday);
+                    }
+                }
+            }
+        }
+        if days_in_month.is_some()
+            && value.is_some()
+            && (1..=days_in_month.unwrap()).contains(&value.unwrap())
+            && valid
+        {
+            day = value;
+        }
+        self.jump_day = check_jump && day != self.day;
+        self.day = day;
+    }
+
+    pub fn set_hour(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
+        let hour = if value.is_some() && (0..=23).contains(&value.unwrap()) && valid {
+            value
+        } else {
+            self.hour
+        };
+        self.jump_hour = check_jump && hour != self.hour;
+        self.hour = hour;
+    }
+
+    pub fn set_minute(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
+        let minute = if value.is_some() && (0..=59).contains(&value.unwrap()) && valid {
+            value
+        } else {
+            self.minute
+        };
+        self.jump_minute = check_jump && minute != self.minute;
+        self.minute = minute;
     }
 
     /// Returns a character representation of the current DST status.

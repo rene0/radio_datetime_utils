@@ -158,6 +158,7 @@ pub const LEAP_NON_ZERO: u8 = 4;
 pub const LEAP_MISSING: u8 = 8;
 
 /// Represents a date and time transmitted over radio.
+#[derive(Clone, Copy)]
 pub struct RadioDateTimeUtils {
     year: Option<u8>,
     month: Option<u8>,

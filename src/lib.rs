@@ -113,10 +113,10 @@ fn min_max(a: usize, b: usize) -> (usize, usize) {
  * # Arguments
  * * `year` - year of the given date
  * * `month` - month of the given date
- * * `day` - day of the month, used to see if `year` is a leap year
- * * `weekday` - day of the week, used to see if `year` is a leap year
+ * * `day` - day of the month in February '00, used to see if `year` is a leap year
+ * * `weekday` - day of the week in February '00, used to see if `year` is a leap year
  */
-pub fn last_day(year: u8, month: u8, day: u8, weekday: u8) -> Option<u8> {
+fn last_day(year: u8, month: u8, day: u8, weekday: u8) -> Option<u8> {
     if !(0..=99).contains(&year)
         || !(1..=12).contains(&month)
         || !(1..=31).contains(&day)

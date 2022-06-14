@@ -173,11 +173,21 @@ pub struct RadioDateTimeUtils {
     jump_weekday: bool,
     jump_hour: bool,
     jump_minute: bool,
+    min_weekday: u8,
+    max_weekday: u8,
 }
 
 impl RadioDateTimeUtils {
-    /// Initialize a new RadioDateTimeUtils instance
-    pub fn new() -> Self {
+    /**
+     * Initialize a new RadioDateTimeUtils instance
+     *
+     * # Arguments
+     * * `min_weekday` - the numeric value of the first day of the week, e.g.,
+     *                   1 (Monday) for DCF77 or 0 (Sunday) for NPL
+     * * `max_weekday` - the numeric value of the last day of the week, e.g.,
+     *                   7 (Sunday) for DCF77 or 6 (Saturday) for NPL
+     */
+    pub fn new(sunday: u8) -> Self {
         Self {
             year: None,
             month: None,
@@ -193,6 +203,8 @@ impl RadioDateTimeUtils {
             jump_weekday: false,
             jump_hour: false,
             jump_minute: false,
+            min_weekday: if sunday == 0 { 0 } else { 1 },
+            max_weekday: if sunday == 7 { 7 } else { 6 },
         }
     }
 
@@ -377,14 +389,8 @@ impl RadioDateTimeUtils {
      * Adds one minute to the current date and time, returns if the operation succeeded.
      *
      * * Years are limited to 2 digits, so this function wraps after 100 years.
-     *
-     * # Arguments
-     * * `min_weekday` - the numeric value of the first day of the week, e.g.,
-     *                   1 (Monday) for DCF77 or 0 (Sunday) for NPL
-     * * `max_weekday` - the numeric value of the last day of the week, e.g.,
-     *                   7 (Sunday) for DCF77 or 6 (Saturday) for NPL
      */
-    pub fn add_minute(&mut self, min_weekday: u8, max_weekday: u8) -> bool {
+    pub fn add_minute(&mut self) -> bool {
         if self.minute.is_none()
             || self.hour.is_none()
             || self.day.is_none()
@@ -419,8 +425,8 @@ impl RadioDateTimeUtils {
                     return false;
                 }
                 t_weekday += 1;
-                if t_weekday == max_weekday + 1 {
-                    t_weekday = min_weekday;
+                if t_weekday == self.max_weekday + 1 {
+                    t_weekday = self.min_weekday;
                 }
                 t_day += 1;
                 if t_day > old_last_day.unwrap() {
@@ -511,13 +517,6 @@ fn is_leap_century(day: u8, weekday: u8) -> bool {
         day + 7 * ((28 - day) / 7) + 8 - wd == 28
     } else {
         day - 7 * ((day - 28) / 7) + 1 - wd == 28
-    }
-}
-
-use core::default::Default;
-impl Default for RadioDateTimeUtils {
-    fn default() -> Self {
-        RadioDateTimeUtils::new()
     }
 }
 

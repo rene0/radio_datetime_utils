@@ -3,7 +3,8 @@
 //! Build with no_std for embedded platforms.
 #![cfg_attr(not(test), no_std)]
 
-use heapless::Vec;
+use core::fmt::Write;
+use heapless::{String, Vec};
 
 /**
  * Return the difference in microseconds between two timestamps.
@@ -158,20 +159,20 @@ pub const LEAP_MISSING: u8 = 8;
 
 /// Represents a date and time transmitted over radio.
 pub struct RadioDateTimeUtils {
-    pub year: Option<u8>,
-    pub month: Option<u8>,
-    pub day: Option<u8>,
-    pub weekday: Option<u8>,
-    pub hour: Option<u8>,
-    pub minute: Option<u8>,
-    pub dst: Option<u8>,
-    pub leap_second: Option<u8>,
-    pub jump_year: bool,
-    pub jump_month: bool,
-    pub jump_day: bool,
-    pub jump_weekday: bool,
-    pub jump_hour: bool,
-    pub jump_minute: bool,
+    year: Option<u8>,
+    month: Option<u8>,
+    day: Option<u8>,
+    weekday: Option<u8>,
+    hour: Option<u8>,
+    minute: Option<u8>,
+    dst: Option<u8>,
+    leap_second: Option<u8>,
+    jump_year: bool,
+    jump_month: bool,
+    jump_day: bool,
+    jump_weekday: bool,
+    jump_hour: bool,
+    jump_minute: bool,
 }
 
 impl RadioDateTimeUtils {
@@ -192,6 +193,183 @@ impl RadioDateTimeUtils {
             jump_weekday: false,
             jump_hour: false,
             jump_minute: false,
+        }
+    }
+
+    pub fn get_year(&self) -> Option<u8> {
+        self.year
+    }
+
+    pub fn str_year(&self) -> String<2> {
+        let mut s = String::<2>::from("");
+        if self.year.is_some() {
+            write!(s, "{:>02}", self.year.unwrap()).unwrap();
+        } else {
+            write!(s, "**").unwrap();
+        }
+        s
+    }
+
+    pub fn get_month(&self) -> Option<u8> {
+        self.month
+    }
+
+    pub fn str_month(&self) -> String<2> {
+        let mut s = String::<2>::from("");
+        if self.month.is_some() {
+            write!(s, "{:>02}", self.month.unwrap()).unwrap();
+        } else {
+            write!(s, "**").unwrap();
+        }
+        s
+    }
+
+    pub fn get_day(&self) -> Option<u8> {
+        self.day
+    }
+
+    pub fn str_day(&self) -> String<2> {
+        let mut s = String::<2>::from("");
+        if self.day.is_some() {
+            write!(s, "{:>02}", self.day.unwrap()).unwrap();
+        } else {
+            write!(s, "**").unwrap();
+        }
+        s
+    }
+
+    pub fn get_weekday(&self) -> Option<u8> {
+        self.weekday
+    }
+
+    /// Return a textual representation of the weekday
+    pub fn str_weekday(&self) -> String<2> {
+        String::<2>::from(match self.weekday {
+            Some(0) => "Su",
+            Some(1) => "Mo",
+            Some(2) => "Tu",
+            Some(3) => "We",
+            Some(4) => "Th",
+            Some(5) => "Fr",
+            Some(6) => "Sa",
+            Some(7) => "Su",
+            _ => "**",
+        })
+    }
+
+    pub fn get_hour(&self) -> Option<u8> {
+        self.hour
+    }
+
+    pub fn str_hour(&self) -> String<2> {
+        let mut s = String::<2>::from("");
+        if self.hour.is_some() {
+            write!(s, "{:>02}", self.hour.unwrap()).unwrap();
+        } else {
+            write!(s, "**").unwrap();
+        }
+        s
+    }
+
+    pub fn get_minute(&self) -> Option<u8> {
+        self.minute
+    }
+
+    pub fn str_minute(&self) -> String<2> {
+        let mut s = String::<2>::from("");
+        if self.minute.is_some() {
+            write!(s, "{:>02}", self.minute.unwrap()).unwrap();
+        } else {
+            write!(s, "**").unwrap();
+        }
+        s
+    }
+
+    pub fn get_dst(&self) -> Option<u8> {
+        self.dst
+    }
+
+    pub fn get_leap_second(&self) -> Option<u8> {
+        self.leap_second
+    }
+
+    pub fn get_jump_year(&self) -> bool {
+        self.jump_year
+    }
+
+    pub fn str_jump_year(&self) -> char {
+        if self.jump_year {
+            'y'
+        } else {
+            ' '
+        }
+    }
+
+    pub fn get_jump_month(&self) -> bool {
+        self.jump_month
+    }
+
+    pub fn str_jump_month(&self) -> char {
+        if self.jump_month {
+            'm'
+        } else {
+            ' '
+        }
+    }
+
+    pub fn get_jump_day(&self) -> bool {
+        self.jump_day
+    }
+
+    pub fn str_jump_day(&self) -> char {
+        if self.jump_day {
+            'd'
+        } else {
+            ' '
+        }
+    }
+
+    pub fn get_jump_weekday(&self) -> bool {
+        self.jump_weekday
+    }
+
+    pub fn str_jump_weekday(&self) -> char {
+        if self.jump_weekday {
+            'w'
+        } else {
+            ' '
+        }
+    }
+
+    pub fn get_jump_hour(&self) -> bool {
+        self.jump_hour
+    }
+
+    pub fn str_jump_hour(&self) -> char {
+        if self.jump_hour {
+            'h'
+        } else {
+            ' '
+        }
+    }
+
+    pub fn get_jump_minute(&self) -> bool {
+        self.jump_minute
+    }
+
+    pub fn str_jump_minute(&self) -> char {
+        if self.jump_minute {
+            'm'
+        } else {
+            ' '
+        }
+    }
+
+    pub fn str_jump_dst(&self) -> char {
+        if self.dst.is_some() && (self.dst.unwrap() & DST_JUMP) != 0 {
+            't'
+        } else {
+            ' '
         }
     }
 

@@ -10,7 +10,7 @@ use heapless::{String, Vec};
  * Return the difference in microseconds between two timestamps.
  *
  * This function takes wrapping of the parameters into account,
- * as they are u32 so they wrap each 71m35.
+ * as they are u32, so they wrap each 71m35.
  *
  * # Arguments
  * * `t0` - old timestamp in microseconds

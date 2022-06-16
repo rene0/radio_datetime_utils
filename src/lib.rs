@@ -3,8 +3,7 @@
 //! Build with no_std for embedded platforms.
 #![cfg_attr(not(test), no_std)]
 
-use core::fmt::Write;
-use heapless::{String, Vec};
+use heapless::Vec;
 
 /**
  * Return the difference in microseconds between two timestamps.
@@ -189,31 +188,9 @@ impl RadioDateTimeUtils {
         self.year
     }
 
-    /// Get the current year as a string with leading 0, truncated to two digits or ** for None.
-    pub fn str_year(&self) -> String<2> {
-        let mut s = String::<2>::from("");
-        if self.year.is_some() {
-            write!(s, "{:>02}", self.year.unwrap()).unwrap();
-        } else {
-            write!(s, "**").unwrap();
-        }
-        s
-    }
-
     /// Get the current month.
     pub fn get_month(&self) -> Option<u8> {
         self.month
-    }
-
-    /// Get the current month as a string with leading 0, or ** for None.
-    pub fn str_month(&self) -> String<2> {
-        let mut s = String::<2>::from("");
-        if self.month.is_some() {
-            write!(s, "{:>02}", self.month.unwrap()).unwrap();
-        } else {
-            write!(s, "**").unwrap();
-        }
-        s
     }
 
     /// Get the current day of the month.
@@ -221,35 +198,9 @@ impl RadioDateTimeUtils {
         self.day
     }
 
-    /// Get the current day of the month as a string with leading 0, or ** for None.
-    pub fn str_day(&self) -> String<2> {
-        let mut s = String::<2>::from("");
-        if self.day.is_some() {
-            write!(s, "{:>02}", self.day.unwrap()).unwrap();
-        } else {
-            write!(s, "**").unwrap();
-        }
-        s
-    }
-
     /// Get the current day of the week as a number.
     pub fn get_weekday(&self) -> Option<u8> {
         self.weekday
-    }
-
-    /// Return a textual representation of the weekday, Mo-Su or ** for None.
-    pub fn str_weekday(&self) -> String<2> {
-        String::<2>::from(match self.weekday {
-            Some(0) => "Su",
-            Some(1) => "Mo",
-            Some(2) => "Tu",
-            Some(3) => "We",
-            Some(4) => "Th",
-            Some(5) => "Fr",
-            Some(6) => "Sa",
-            Some(7) => "Su",
-            _ => "**",
-        })
     }
 
     /// Get the current hour.
@@ -257,31 +208,9 @@ impl RadioDateTimeUtils {
         self.hour
     }
 
-    /// Get the current hour as a string, with leading 0, or ** for None.
-    pub fn str_hour(&self) -> String<2> {
-        let mut s = String::<2>::from("");
-        if self.hour.is_some() {
-            write!(s, "{:>02}", self.hour.unwrap()).unwrap();
-        } else {
-            write!(s, "**").unwrap();
-        }
-        s
-    }
-
     /// Get the current minute.
     pub fn get_minute(&self) -> Option<u8> {
         self.minute
-    }
-
-    /// Get the current minute as a string, with leading 0, or ** for None.
-    pub fn str_minute(&self) -> String<2> {
-        let mut s = String::<2>::from("");
-        if self.minute.is_some() {
-            write!(s, "{:>02}", self.minute.unwrap()).unwrap();
-        } else {
-            write!(s, "**").unwrap();
-        }
-        s
     }
 
     /// Get the current bitmask value of the daylight saving time status.
@@ -299,27 +228,9 @@ impl RadioDateTimeUtils {
         self.jump_year
     }
 
-    /// Return if the year has jumped unexpectedly, 'y' or ' '
-    pub fn str_jump_year(&self) -> char {
-        if self.jump_year {
-            'y'
-        } else {
-            ' '
-        }
-    }
-
     /// Return if the month has jumped unexpectedly.
     pub fn get_jump_month(&self) -> bool {
         self.jump_month
-    }
-
-    /// Return if the month has jumped unexpectedly, 'm' or ' '
-    pub fn str_jump_month(&self) -> char {
-        if self.jump_month {
-            'm'
-        } else {
-            ' '
-        }
     }
 
     /// Return if the day-of-month has jumped unexpectedly.
@@ -327,27 +238,9 @@ impl RadioDateTimeUtils {
         self.jump_day
     }
 
-    /// Return if the day-of-month has jumped unexpectedly, 'd' or ' '.
-    pub fn str_jump_day(&self) -> char {
-        if self.jump_day {
-            'd'
-        } else {
-            ' '
-        }
-    }
-
     /// Return if the day-of-week has jumped unexpectedly.
     pub fn get_jump_weekday(&self) -> bool {
         self.jump_weekday
-    }
-
-    /// Return if the day-of-week has jumped unexpectedly, 'w' or ' '.
-    pub fn str_jump_weekday(&self) -> char {
-        if self.jump_weekday {
-            'w'
-        } else {
-            ' '
-        }
     }
 
     /// Return if the hour has jumped unexpectedly.
@@ -355,36 +248,9 @@ impl RadioDateTimeUtils {
         self.jump_hour
     }
 
-    /// Return if the hour has jumped unexpectedly, 'h' or ' '.
-    pub fn str_jump_hour(&self) -> char {
-        if self.jump_hour {
-            'h'
-        } else {
-            ' '
-        }
-    }
-
     /// Return if the minute has jumped unexpectedly.
     pub fn get_jump_minute(&self) -> bool {
         self.jump_minute
-    }
-
-    /// Return if the minute has jumped unexpectedly, 'm' or ' '.
-    pub fn str_jump_minute(&self) -> char {
-        if self.jump_minute {
-            'm'
-        } else {
-            ' '
-        }
-    }
-
-    /// Return if the daylight saving time status jumped unexpectedly, 't' or ' '.
-    pub fn str_jump_dst(&self) -> char {
-        if self.dst.is_some() && (self.dst.unwrap() & DST_JUMP) != 0 {
-            't'
-        } else {
-            ' '
-        }
     }
 
     /**
@@ -574,40 +440,6 @@ impl RadioDateTimeUtils {
         };
         self.jump_minute = check_jump && minute != self.minute;
         self.minute = minute;
-    }
-
-    /// Returns a character representation of the current DST status.
-    pub fn str_dst(&self) -> char {
-        if self.dst.is_none() {
-            return 'x';
-        }
-        let mut dst = if (self.dst.unwrap() & DST_SUMMER) != 0 {
-            's'
-        } else {
-            'w'
-        };
-        if (self.dst.unwrap() & (DST_ANNOUNCED | DST_PROCESSED)) != 0 {
-            dst = dst.to_ascii_uppercase();
-        }
-        dst
-    }
-
-    /// Returns a character representation of the current leap second status.
-    pub fn str_leap_second(&self) -> char {
-        if self.leap_second.is_none() {
-            return 'x';
-        }
-        if (self.leap_second.unwrap() & LEAP_PROCESSED) != 0 {
-            'L'
-        } else if (self.leap_second.unwrap() & LEAP_NON_ZERO) != 0 {
-            '1'
-        } else if (self.leap_second.unwrap() & LEAP_MISSING) != 0 {
-            'm'
-        } else if (self.leap_second.unwrap() & LEAP_ANNOUNCED) != 0 {
-            'l'
-        } else {
-            ' ' // LEAP_NONE
-        }
     }
 
     /**

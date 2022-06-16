@@ -98,6 +98,13 @@ pub fn get_parity(
     Some(par)
 }
 
+/**
+ * Return a tuple of the two parameters in ascending order.
+ *
+ * # Arguments
+ * * `a` - first argument
+ * * `b` - second argument
+*/
 #[inline]
 fn min_max(a: usize, b: usize) -> (usize, usize) {
     if a < b {
@@ -154,10 +161,7 @@ impl RadioDateTimeUtils {
      * Initialize a new RadioDateTimeUtils instance
      *
      * # Arguments
-     * * `min_weekday` - the numeric value of the first day of the week, e.g.,
-     *                   1 (Monday) for DCF77 or 0 (Sunday) for NPL
-     * * `max_weekday` - the numeric value of the last day of the week, e.g.,
-     *                   7 (Sunday) for DCF77 or 6 (Saturday) for NPL
+     * * `sunday` - the numeric value of Sunday, i.e. 7 for DCF77 or 0 for NPL
      */
     pub fn new(sunday: u8) -> Self {
         Self {
@@ -180,10 +184,12 @@ impl RadioDateTimeUtils {
         }
     }
 
+    /// Get the current year, truncated to two digits.
     pub fn get_year(&self) -> Option<u8> {
         self.year
     }
 
+    /// Get the current year as a string with leading 0, truncated to two digits or ** for None.
     pub fn str_year(&self) -> String<2> {
         let mut s = String::<2>::from("");
         if self.year.is_some() {
@@ -194,10 +200,12 @@ impl RadioDateTimeUtils {
         s
     }
 
+    /// Get the current month.
     pub fn get_month(&self) -> Option<u8> {
         self.month
     }
 
+    /// Get the current month as a string with leading 0, or ** for None.
     pub fn str_month(&self) -> String<2> {
         let mut s = String::<2>::from("");
         if self.month.is_some() {
@@ -208,10 +216,12 @@ impl RadioDateTimeUtils {
         s
     }
 
+    /// Get the current day of the month.
     pub fn get_day(&self) -> Option<u8> {
         self.day
     }
 
+    /// Get the current day of the month as a string with leading 0, or ** for None.
     pub fn str_day(&self) -> String<2> {
         let mut s = String::<2>::from("");
         if self.day.is_some() {
@@ -222,11 +232,12 @@ impl RadioDateTimeUtils {
         s
     }
 
+    /// Get the current day of the week as a number.
     pub fn get_weekday(&self) -> Option<u8> {
         self.weekday
     }
 
-    /// Return a textual representation of the weekday
+    /// Return a textual representation of the weekday, Mo-Su or ** for None.
     pub fn str_weekday(&self) -> String<2> {
         String::<2>::from(match self.weekday {
             Some(0) => "Su",
@@ -241,10 +252,12 @@ impl RadioDateTimeUtils {
         })
     }
 
+    /// Get the current hour.
     pub fn get_hour(&self) -> Option<u8> {
         self.hour
     }
 
+    /// Get the current hour as a string, with leading 0, or ** for None.
     pub fn str_hour(&self) -> String<2> {
         let mut s = String::<2>::from("");
         if self.hour.is_some() {
@@ -255,10 +268,12 @@ impl RadioDateTimeUtils {
         s
     }
 
+    /// Get the current minute.
     pub fn get_minute(&self) -> Option<u8> {
         self.minute
     }
 
+    /// Get the current minute as a string, with leading 0, or ** for None.
     pub fn str_minute(&self) -> String<2> {
         let mut s = String::<2>::from("");
         if self.minute.is_some() {
@@ -269,18 +284,22 @@ impl RadioDateTimeUtils {
         s
     }
 
+    /// Get the current bitmask value of the daylight saving time status.
     pub fn get_dst(&self) -> Option<u8> {
         self.dst
     }
 
+    /// Get the current bitmask value of the leap second status.
     pub fn get_leap_second(&self) -> Option<u8> {
         self.leap_second
     }
 
+    /// Return if the year has jumped unexpectedly.
     pub fn get_jump_year(&self) -> bool {
         self.jump_year
     }
 
+    /// Return if the year has jumped unexpectedly, 'y' or ' '
     pub fn str_jump_year(&self) -> char {
         if self.jump_year {
             'y'
@@ -289,10 +308,12 @@ impl RadioDateTimeUtils {
         }
     }
 
+    /// Return if the month has jumped unexpectedly.
     pub fn get_jump_month(&self) -> bool {
         self.jump_month
     }
 
+    /// Return if the month has jumped unexpectedly, 'm' or ' '
     pub fn str_jump_month(&self) -> char {
         if self.jump_month {
             'm'
@@ -301,10 +322,12 @@ impl RadioDateTimeUtils {
         }
     }
 
+    /// Return if the day-of-month has jumped unexpectedly.
     pub fn get_jump_day(&self) -> bool {
         self.jump_day
     }
 
+    /// Return if the day-of-month has jumped unexpectedly, 'd' or ' '.
     pub fn str_jump_day(&self) -> char {
         if self.jump_day {
             'd'
@@ -313,10 +336,12 @@ impl RadioDateTimeUtils {
         }
     }
 
+    /// Return if the day-of-week has jumped unexpectedly.
     pub fn get_jump_weekday(&self) -> bool {
         self.jump_weekday
     }
 
+    /// Return if the day-of-week has jumped unexpectedly, 'w' or ' '.
     pub fn str_jump_weekday(&self) -> char {
         if self.jump_weekday {
             'w'
@@ -325,10 +350,12 @@ impl RadioDateTimeUtils {
         }
     }
 
+    /// Return if the hour has jumped unexpectedly.
     pub fn get_jump_hour(&self) -> bool {
         self.jump_hour
     }
 
+    /// Return if the hour has jumped unexpectedly, 'h' or ' '.
     pub fn str_jump_hour(&self) -> char {
         if self.jump_hour {
             'h'
@@ -337,10 +364,12 @@ impl RadioDateTimeUtils {
         }
     }
 
+    /// Return if the minute has jumped unexpectedly.
     pub fn get_jump_minute(&self) -> bool {
         self.jump_minute
     }
 
+    /// Return if the minute has jumped unexpectedly, 'm' or ' '.
     pub fn str_jump_minute(&self) -> char {
         if self.jump_minute {
             'm'
@@ -349,6 +378,7 @@ impl RadioDateTimeUtils {
         }
     }
 
+    /// Return if the daylight saving time status jumped unexpectedly, 't' or ' '.
     pub fn str_jump_dst(&self) -> char {
         if self.dst.is_some() && (self.dst.unwrap() & DST_JUMP) != 0 {
             't'
@@ -423,6 +453,14 @@ impl RadioDateTimeUtils {
         true
     }
 
+    /**
+     * Set the year value, valid values are 0 through 99.
+     *
+     * # Arguments
+     * * `value` - the new year value. None or invalid values keep the old value.
+     * * `valid` - extra validation to pass.
+     * * `check_jump` - check if the value has jumped unexpectedly.
+     */
     pub fn set_year(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let year = if value.is_some() && (0..=99).contains(&value.unwrap()) && valid {
             value
@@ -433,6 +471,14 @@ impl RadioDateTimeUtils {
         self.year = year;
     }
 
+    /**
+     * Set the month value, valid values are 1 through 12.
+     *
+     * # Arguments
+     * * `value` - the new month value. None or invalid values keep the old value.
+     * * `valid` - extra validation to pass.
+     * * `check_jump` - check if the value has jumped unexpectedly.
+     */
     pub fn set_month(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let month = if value.is_some() && (1..=12).contains(&value.unwrap()) && valid {
             value
@@ -443,6 +489,15 @@ impl RadioDateTimeUtils {
         self.month = month;
     }
 
+    /**
+     * Set the day-of-week value, valid values are 0/1 through 6/7, depending on how this
+     * instance was created.
+     *
+     * # Arguments
+     * * `value` - the new day-of-week value. None or invalid values keep the old value.
+     * * `valid` - extra validation to pass.
+     * * `check_jump` - check if the value has jumped unexpectedly.
+     */
     pub fn set_weekday(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let weekday = if value.is_some()
             && (self.min_weekday..=self.max_weekday).contains(&value.unwrap())
@@ -456,6 +511,17 @@ impl RadioDateTimeUtils {
         self.weekday = weekday;
     }
 
+    /**
+     * Set the day-in-month value, valid values are 1 through 31.
+     *
+     * If possible, this function further restricts the range of valid days to the last day
+     * in the current month, taking leap years into account.
+     *
+     * # Arguments
+     * * `value` - the new day-in-month value. None or invalid values keep the old value.
+     * * `valid` - extra validation to pass.
+     * * `check_jump` - check if the value has jumped unexpectedly.
+     */
     pub fn set_day(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let mut day = self.day;
         let mut days_in_month = Some(31);
@@ -474,6 +540,14 @@ impl RadioDateTimeUtils {
         self.day = day;
     }
 
+    /**
+     * Set the hour value, valid values are 0 through 23.
+     *
+     * # Arguments
+     * * `value` - the new hour value. None or invalid values keep the old value.
+     * * `valid` - extra validation to pass.
+     * * `check_jump` - check if the value has jumped unexpectedly.
+     */
     pub fn set_hour(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let hour = if value.is_some() && (0..=23).contains(&value.unwrap()) && valid {
             value
@@ -484,6 +558,14 @@ impl RadioDateTimeUtils {
         self.hour = hour;
     }
 
+    /**
+     * Set the year minute, valid values are 0 through 59.
+     *
+     * # Arguments
+     * * `value` - the new minute value. None or invalid values keep the old value.
+     * * `valid` - extra validation to pass.
+     * * `check_jump` - check if the value has jumped unexpectedly.
+     */
     pub fn set_minute(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let minute = if value.is_some() && (0..=59).contains(&value.unwrap()) && valid {
             value

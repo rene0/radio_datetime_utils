@@ -107,35 +107,6 @@ fn min_max(a: usize, b: usize) -> (usize, usize) {
     }
 }
 
-/**
- * Returns the last calendar day of the given year and month, or None in case of error.
- *
- * # Arguments
- * * `year` - year of the given date
- * * `month` - month of the given date
- * * `day` - day of the month in February '00, used to see if `year` is a leap year
- * * `weekday` - day of the week in February '00, used to see if `year` is a leap year
- */
-fn last_day(year: u8, month: u8, day: u8, weekday: u8) -> Option<u8> {
-    if !(0..=99).contains(&year)
-        || !(1..=12).contains(&month)
-        || !(1..=31).contains(&day)
-        || !(0..=7).contains(&weekday)
-    {
-        None
-    } else if month == 2 {
-        if (year != 0 && year % 4 == 0) || (year == 0 && is_leap_century(day, weekday)) {
-            Some(29)
-        } else {
-            Some(28)
-        }
-    } else if month == 4 || month == 6 || month == 9 || month == 11 {
-        Some(30)
-    } else {
-        Some(31)
-    }
-}
-
 /// DST change has been announced
 pub const DST_ANNOUNCED: u8 = 1;
 /// DST change has been processed
@@ -421,7 +392,7 @@ impl RadioDateTimeUtils {
             t_hour += 1;
             if t_hour == 24 {
                 t_hour = 0;
-                let old_last_day = last_day(t_year, t_month, t_day, t_weekday);
+                let old_last_day = self.last_day(t_day);
                 if old_last_day.is_none() {
                     return false;
                 }
@@ -489,14 +460,8 @@ impl RadioDateTimeUtils {
         let mut day = self.day;
         let mut days_in_month = Some(31);
 
-        if let Some(s_year) = self.year {
-            if let Some(s_month) = self.month {
-                if let Some(s_value) = value {
-                    if let Some(s_weekday) = self.weekday {
-                        days_in_month = last_day(s_year, s_month, s_value, s_weekday);
-                    }
-                }
-            }
+        if let Some(s_value) = value {
+            days_in_month = self.last_day(s_value);
         }
         if days_in_month.is_some()
             && value.is_some()
@@ -562,10 +527,53 @@ impl RadioDateTimeUtils {
             ' ' // LEAP_NONE
         }
     }
+
+    /**
+     * Returns the last calendar day of the current date, or None in case of error.
+     *
+     * # Arguments
+     * * `day` - day of the month in February '00, used to see if `year` is a leap year
+     */
+    fn last_day(&self, day: u8) -> Option<u8> {
+        if let Some(s_year) = self.year {
+            if let Some(s_month) = self.month {
+                if let Some(s_weekday) = self.weekday {
+                    if !(1..=31).contains(&day) {
+                        None
+                    } else if s_month == 2 {
+                        if (s_year != 0 && s_year % 4 == 0)
+                            || (s_year == 0 && is_leap_century(day, s_weekday))
+                        {
+                            Some(29)
+                        } else {
+                            Some(28)
+                        }
+                    } else if s_month == 4 || s_month == 6 || s_month == 9 || s_month == 11 {
+                        Some(30)
+                    } else {
+                        Some(31)
+                    }
+                } else {
+                    None
+                }
+            } else {
+                None
+            }
+        } else {
+            None
+        }
+    }
 }
 
-/// Checks if the century based on the given date is divisible by 400.
-/// Based on xx00-02-28 is a Monday <=> xx00 is a leap year
+/**
+ * Checks if the century based on the given date is divisible by 400.
+ *
+ * Based on xx00-02-28 is a Monday <=> xx00 is a leap year
+ *
+ * # Arguments
+ * * `day` - day of the month in February '00
+ * * `weekday` - day of the week in February '00
+ */
 fn is_leap_century(day: u8, weekday: u8) -> bool {
     let mut wd = weekday % 7;
     if wd == 0 {
@@ -583,7 +591,7 @@ fn is_leap_century(day: u8, weekday: u8) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_bcd_value, get_parity, last_day, time_diff};
+    use crate::{get_bcd_value, get_parity, time_diff, RadioDateTimeUtils};
 
     #[test]
     fn test_time_diff() {
@@ -630,15 +638,34 @@ mod tests {
 
     #[test]
     fn test_last_day() {
-        assert_eq!(last_day(22, 6, 5, 7), Some(30)); // today
-        assert_eq!(last_day(100, 6, 5, 7), None); // year too large
-        assert_eq!(last_day(22, 2, 29, 4), Some(28)); // non-existent date
-        assert_eq!(last_day(0, 1, 1, 1), Some(31)); // first day, weekday off/do-not-care
-        assert_eq!(last_day(20, 2, 3, 1), Some(29)); // regular leap year
-        assert_eq!(last_day(20, 2, 3, 4), Some(29)); // same date with bogus weekday
-        assert_eq!(last_day(0, 2, 1, 2), Some(29)); // century-leap-year, day/weekday must match, this Tuesday 2000-02-01
-        assert_eq!(last_day(0, 2, 1, 1), Some(28)); // century-regular-year, Monday 2100-02-01
-        assert_eq!(last_day(0, 2, 6, 7), Some(29)); // century-leap-year, Sunday 2000-02-06, DCF77
-        assert_eq!(last_day(0, 2, 6, 0), Some(29)); // century-leap-year, Sunday 2000-02-06, NPL
+        let mut dcf77 = RadioDateTimeUtils::new(7);
+        dcf77.set_year(Some(22), true, false);
+        dcf77.set_month(Some(6), true, false);
+        dcf77.set_weekday(Some(7), true, false);
+        assert_eq!(dcf77.last_day(5), Some(30)); // today, Sunday 2022-06-05
+        dcf77.set_month(Some(2), true, false);
+        dcf77.set_weekday(Some(4), true, false);
+        assert_eq!(dcf77.last_day(29), Some(28)); // non-existent date, Thursday 22-02-29
+        dcf77.set_year(Some(0), true, false);
+        dcf77.set_month(Some(1), true, false);
+        dcf77.set_weekday(Some(1), true, false);
+        assert_eq!(dcf77.last_day(1), Some(31)); // first day, weekday off/do-not-care, Monday 00-01-01
+        dcf77.set_year(Some(20), true, false);
+        dcf77.set_month(Some(2), true, false);
+        assert_eq!(dcf77.last_day(3), Some(29)); // regular leap year, Wednesday 2020-02-03
+        dcf77.set_weekday(Some(4), true, false);
+        assert_eq!(dcf77.last_day(3), Some(29)); // same date with bogus weekday, "Thursday" 2020-02-03
+        dcf77.set_year(Some(0), true, false);
+        dcf77.set_weekday(Some(2), true, false);
+        assert_eq!(dcf77.last_day(1), Some(29)); // century-leap-year, day/weekday must match, Tuesday 2000-02-01
+        dcf77.set_weekday(Some(1), true, false);
+        assert_eq!(dcf77.last_day(1), Some(28)); // century-regular-year, Monday 2100-02-01
+        dcf77.set_weekday(Some(7), true, false);
+        assert_eq!(dcf77.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
+        let mut npl = RadioDateTimeUtils::new(0);
+        npl.set_year(Some(0), true, false);
+        npl.set_month(Some(2), true, false);
+        npl.set_weekday(Some(0), true, false);
+        assert_eq!(npl.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
     }
 }

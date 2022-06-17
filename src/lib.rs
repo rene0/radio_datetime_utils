@@ -269,53 +269,53 @@ impl RadioDateTimeUtils {
         {
             return false;
         }
-        let mut t_minute = self.minute.unwrap();
-        let mut t_hour = self.hour.unwrap();
-        let mut t_day = self.day.unwrap();
-        let mut t_weekday = self.weekday.unwrap();
-        let mut t_month = self.month.unwrap();
-        let mut t_year = self.year.unwrap();
-        t_minute += 1;
-        if t_minute == 60 {
-            t_minute = 0;
+        let mut s_minute = self.minute.unwrap();
+        let mut s_hour = self.hour.unwrap();
+        let mut s_day = self.day.unwrap();
+        let mut s_weekday = self.weekday.unwrap();
+        let mut s_month = self.month.unwrap();
+        let mut s_year = self.year.unwrap();
+        s_minute += 1;
+        if s_minute == 60 {
+            s_minute = 0;
             if (self.dst.unwrap() & DST_ANNOUNCED) != 0 {
                 if (self.dst.unwrap() & DST_SUMMER) != 0 {
-                    t_hour -= 1; // changing to winter
+                    s_hour -= 1; // changing to winter
                 } else {
-                    t_hour += 1; // changing to summer
+                    s_hour += 1; // changing to summer
                 }
             }
-            t_hour += 1;
-            if t_hour == 24 {
-                t_hour = 0;
-                let old_last_day = self.last_day(t_day);
+            s_hour += 1;
+            if s_hour == 24 {
+                s_hour = 0;
+                let old_last_day = self.last_day(s_day);
                 if old_last_day.is_none() {
                     return false;
                 }
-                t_weekday += 1;
-                if t_weekday == self.max_weekday + 1 {
-                    t_weekday = self.min_weekday;
+                s_weekday += 1;
+                if s_weekday == self.max_weekday + 1 {
+                    s_weekday = self.min_weekday;
                 }
-                t_day += 1;
-                if t_day > old_last_day.unwrap() {
-                    t_day = 1;
-                    t_month += 1;
-                    if t_month == 13 {
-                        t_month = 1;
-                        t_year += 1;
-                        if t_year == 100 {
-                            t_year = 0;
+                s_day += 1;
+                if s_day > old_last_day.unwrap() {
+                    s_day = 1;
+                    s_month += 1;
+                    if s_month == 13 {
+                        s_month = 1;
+                        s_year += 1;
+                        if s_year == 100 {
+                            s_year = 0;
                         }
                     }
                 }
             }
         }
-        self.minute = Some(t_minute);
-        self.hour = Some(t_hour);
-        self.day = Some(t_day);
-        self.weekday = Some(t_weekday);
-        self.month = Some(t_month);
-        self.year = Some(t_year);
+        self.minute = Some(s_minute);
+        self.hour = Some(s_hour);
+        self.day = Some(s_day);
+        self.weekday = Some(s_weekday);
+        self.month = Some(s_month);
+        self.year = Some(s_year);
         true
     }
 

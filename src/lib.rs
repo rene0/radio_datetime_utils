@@ -333,7 +333,7 @@ impl RadioDateTimeUtils {
         } else {
             self.year
         };
-        self.jump_year = check_jump && year != self.year;
+        self.jump_year = check_jump && year.is_some() && self.year.is_some() && year != self.year;
         self.year = year;
     }
 
@@ -351,7 +351,8 @@ impl RadioDateTimeUtils {
         } else {
             self.month
         };
-        self.jump_month = check_jump && month != self.month;
+        self.jump_month =
+            check_jump && month.is_some() && self.month.is_some() && month != self.month;
         self.month = month;
     }
 
@@ -373,7 +374,8 @@ impl RadioDateTimeUtils {
         } else {
             self.weekday
         };
-        self.jump_weekday = check_jump && weekday != self.weekday;
+        self.jump_weekday =
+            check_jump && weekday.is_some() && self.weekday.is_some() && weekday != self.weekday;
         self.weekday = weekday;
     }
 
@@ -402,7 +404,7 @@ impl RadioDateTimeUtils {
         {
             day = value;
         }
-        self.jump_day = check_jump && day != self.day;
+        self.jump_day = check_jump && day.is_some() && self.day.is_some() && day != self.day;
         self.day = day;
     }
 
@@ -420,7 +422,7 @@ impl RadioDateTimeUtils {
         } else {
             self.hour
         };
-        self.jump_hour = check_jump && hour != self.hour;
+        self.jump_hour = check_jump && hour.is_some() && self.hour.is_some() && hour != self.hour;
         self.hour = hour;
     }
 
@@ -438,7 +440,8 @@ impl RadioDateTimeUtils {
         } else {
             self.minute
         };
-        self.jump_minute = check_jump && minute != self.minute;
+        self.jump_minute =
+            check_jump && minute.is_some() && self.minute.is_some() && minute != self.minute;
         self.minute = minute;
     }
 

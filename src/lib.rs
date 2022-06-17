@@ -325,7 +325,7 @@ impl RadioDateTimeUtils {
      * # Arguments
      * * `value` - the new year value. None or invalid values keep the old value.
      * * `valid` - extra validation to pass.
-     * * `check_jump` - check if the value has jumped unexpectedly.
+     * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_year(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let year = if value.is_some() && (0..=99).contains(&value.unwrap()) && valid {
@@ -343,7 +343,7 @@ impl RadioDateTimeUtils {
      * # Arguments
      * * `value` - the new month value. None or invalid values keep the old value.
      * * `valid` - extra validation to pass.
-     * * `check_jump` - check if the value has jumped unexpectedly.
+     * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_month(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let month = if value.is_some() && (1..=12).contains(&value.unwrap()) && valid {
@@ -362,7 +362,7 @@ impl RadioDateTimeUtils {
      * # Arguments
      * * `value` - the new day-of-week value. None or invalid values keep the old value.
      * * `valid` - extra validation to pass.
-     * * `check_jump` - check if the value has jumped unexpectedly.
+     * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_weekday(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let weekday = if value.is_some()
@@ -386,7 +386,7 @@ impl RadioDateTimeUtils {
      * # Arguments
      * * `value` - the new day-in-month value. None or invalid values keep the old value.
      * * `valid` - extra validation to pass.
-     * * `check_jump` - check if the value has jumped unexpectedly.
+     * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_day(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let mut day = self.day;
@@ -412,7 +412,7 @@ impl RadioDateTimeUtils {
      * # Arguments
      * * `value` - the new hour value. None or invalid values keep the old value.
      * * `valid` - extra validation to pass.
-     * * `check_jump` - check if the value has jumped unexpectedly.
+     * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_hour(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let hour = if value.is_some() && (0..=23).contains(&value.unwrap()) && valid {
@@ -430,7 +430,7 @@ impl RadioDateTimeUtils {
      * # Arguments
      * * `value` - the new minute value. None or invalid values keep the old value.
      * * `valid` - extra validation to pass.
-     * * `check_jump` - check if the value has jumped unexpectedly.
+     * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_minute(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
         let minute = if value.is_some() && (0..=59).contains(&value.unwrap()) && valid {

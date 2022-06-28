@@ -77,19 +77,17 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
  * * `bit_buffer` - buffer containing the bits to check.
  * * `start` - start bit position
  * * `stop` - stop bit position
- * * `parity` - parity bit position, must be outside of start..=stop (or stop..=start)
+ * * `parity` - parity bit value
  */
 pub fn get_parity(
     bit_buffer: &[Option<bool>],
     start: usize,
     stop: usize,
-    parity: usize,
+    parity: Option<bool>,
 ) -> Option<bool> {
     let (p0, p1) = min_max(start, stop);
-    if bit_buffer[parity].is_none() || (p0..=p1).contains(&parity) {
-        return None;
-    }
-    let mut par = bit_buffer[parity].unwrap();
+    parity?;
+    let mut par = parity.unwrap();
     for bit in &bit_buffer[p0..=p1] {
         (*bit)?;
         par ^= bit.unwrap();
@@ -546,11 +544,19 @@ mod tests {
 
     #[test]
     fn test_get_parity() {
-        assert_eq!(get_parity(&BIT_BUFFER[0..=4], 0, 3, 4), Some(false));
-        assert_eq!(get_parity(&BIT_BUFFER[0..=4], 0, 4, 3), None); // parity in middle of range
-        assert_eq!(get_parity(&BIT_BUFFER[7..=9], 0, 1, 2), None); // has a None value
-        assert_eq!(get_parity(&BIT_BUFFER[0..=3], 0, 2, 3), Some(true));
-        assert_eq!(get_parity(&BIT_BUFFER[0..=3], 3, 1, 0), Some(true)); // backwards
+        assert_eq!(
+            get_parity(&BIT_BUFFER[0..=4], 0, 3, BIT_BUFFER[4]),
+            Some(false)
+        );
+        assert_eq!(get_parity(&BIT_BUFFER[7..=9], 0, 1, BIT_BUFFER[2]), None); // has a None value
+        assert_eq!(
+            get_parity(&BIT_BUFFER[0..=3], 0, 2, BIT_BUFFER[3]),
+            Some(true)
+        );
+        assert_eq!(
+            get_parity(&BIT_BUFFER[0..=3], 3, 1, BIT_BUFFER[0]),
+            Some(true)
+        ); // backwards
     }
 
     #[test]

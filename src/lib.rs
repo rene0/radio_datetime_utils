@@ -120,17 +120,12 @@ pub const DST_JUMP: u8 = 4;
 /// DST is active
 pub const DST_SUMMER: u8 = 8;
 
-// Only used with DCF77 :
-/// No leap second expected or present
-pub const LEAP_NONE: u8 = 0;
 /// Leap second has been announced
 pub const LEAP_ANNOUNCED: u8 = 1;
 /// Leap second has been processed
 pub const LEAP_PROCESSED: u8 = 2;
-/// Leap second bit value is 1 instead of 0
-pub const LEAP_NON_ZERO: u8 = 4;
 /// Leap second is unexpectedly absent
-pub const LEAP_MISSING: u8 = 8;
+pub const LEAP_MISSING: u8 = 4;
 
 /// Represents a date and time transmitted over radio.
 #[derive(Clone, Copy)]
@@ -143,6 +138,7 @@ pub struct RadioDateTimeUtils {
     minute: Option<u8>,
     dst: Option<u8>,
     leap_second: Option<u8>,
+    leap_second_count: u8, // internal counter for set_leap_second()
     jump_year: bool,
     jump_month: bool,
     jump_day: bool,
@@ -151,6 +147,7 @@ pub struct RadioDateTimeUtils {
     jump_minute: bool,
     min_weekday: u8,
     max_weekday: u8,
+    minutes_running: u8, // internal counter for set_dst() and set_leap_second()
 }
 
 impl RadioDateTimeUtils {
@@ -170,6 +167,7 @@ impl RadioDateTimeUtils {
             minute: None,
             dst: None,
             leap_second: None,
+            leap_second_count: 0,
             jump_year: false,
             jump_month: false,
             jump_day: false,
@@ -178,6 +176,7 @@ impl RadioDateTimeUtils {
             jump_minute: false,
             min_weekday: if sunday == 0 { 0 } else { 1 },
             max_weekday: if sunday == 7 { 7 } else { 6 },
+            minutes_running: 0,
         }
     }
 
@@ -441,6 +440,66 @@ impl RadioDateTimeUtils {
         self.jump_minute =
             check_jump && minute.is_some() && self.minute.is_some() && minute != self.minute;
         self.minute = minute;
+    }
+
+    /**
+     * Set the leap second value.
+     *
+     * # Arguments
+     * * `announce` - if any announcement is made on a positive leap second. The history
+     *                of this value of the last hour (or part thereof if started later) is
+     *                kept to compensate for spurious Some(True) values.
+     * * `minute_length` - the length of the decoded minute in seconds.
+     */
+    pub fn set_leap_second(&mut self, announce: Option<bool>, minute_length: u8) {
+        if announce.is_none() {
+            return;
+        }
+        if self.leap_second.is_none() {
+            self.leap_second = Some(0);
+        }
+        // Determine if a leap second is announced:
+        if announce == Some(true) {
+            self.leap_second_count += 1;
+        }
+        if self.minute.is_some() && self.minute.unwrap() > 0 {
+            if 2 * self.leap_second_count > self.minutes_running {
+                self.leap_second = Some(self.leap_second.unwrap() | LEAP_ANNOUNCED);
+            } else {
+                self.leap_second = Some(self.leap_second.unwrap() & !LEAP_ANNOUNCED);
+            }
+        }
+        // Process possible leap second:
+        if self.minute == Some(0) && (self.leap_second.unwrap() & LEAP_ANNOUNCED) != 0 {
+            self.leap_second = Some(self.leap_second.unwrap() | LEAP_PROCESSED);
+            if minute_length == 60 {
+                // Leap second processed, but missing:
+                self.leap_second = Some(self.leap_second.unwrap() | LEAP_MISSING);
+            } else {
+                // Leap second processed and present:
+                self.leap_second = Some(self.leap_second.unwrap() & !LEAP_MISSING);
+            }
+        } else {
+            self.leap_second = Some(self.leap_second.unwrap() & !LEAP_PROCESSED);
+        }
+        // Always reset announcement at the hour:
+        if self.minute == Some(0) {
+            self.leap_second = Some(self.leap_second.unwrap() & !LEAP_ANNOUNCED);
+            self.leap_second_count = 0;
+        }
+    }
+
+    /**
+     * Bump the internal minute counter needed for set_dst() and set_leap_second()
+     *
+     * The code above this library must call this function, as this library cannot
+     * know which function got called first, or if just one of them should be called.
+     */
+    pub fn bump_minutes_running(&mut self) {
+        self.minutes_running += 1;
+        if self.minutes_running == 60 {
+            self.minutes_running = 0;
+        }
     }
 
     /**

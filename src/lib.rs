@@ -137,6 +137,7 @@ pub struct RadioDateTimeUtils {
     hour: Option<u8>,
     minute: Option<u8>,
     dst: Option<u8>,
+    dst_count: u8, // internal counter for set_dst()
     leap_second: Option<u8>,
     leap_second_count: u8, // internal counter for set_leap_second()
     jump_year: bool,
@@ -148,6 +149,7 @@ pub struct RadioDateTimeUtils {
     min_weekday: u8,
     max_weekday: u8,
     minutes_running: u8, // internal counter for set_dst() and set_leap_second()
+    first_minute: bool,  // internal flag for set_dst()
 }
 
 impl RadioDateTimeUtils {
@@ -166,6 +168,7 @@ impl RadioDateTimeUtils {
             hour: None,
             minute: None,
             dst: None,
+            dst_count: 0,
             leap_second: None,
             leap_second_count: 0,
             jump_year: false,
@@ -177,6 +180,7 @@ impl RadioDateTimeUtils {
             min_weekday: if sunday == 0 { 0 } else { 1 },
             max_weekday: if sunday == 7 { 7 } else { 6 },
             minutes_running: 0,
+            first_minute: true,
         }
     }
 
@@ -210,7 +214,7 @@ impl RadioDateTimeUtils {
         self.minute
     }
 
-    /// Get the current bitmask value of the daylight saving time status.
+    /// Get the current bitmask value (if any) of the daylight saving time status.
     pub fn get_dst(&self) -> Option<u8> {
         self.dst
     }
@@ -440,6 +444,65 @@ impl RadioDateTimeUtils {
         self.jump_minute =
             check_jump && minute.is_some() && self.minute.is_some() && minute != self.minute;
         self.minute = minute;
+    }
+
+    /**
+     * Set the DST mask value, both the actual value and any information on transitions.
+     *
+     * # Arguments
+     * * `value` - the new DST value. None or unannounced changes keep the old value.
+     * * `announce` - if any announcement is made on a transition. The history of this
+     *                value of the last hour (or part thereof if started later) is kept
+     *                to compensate for spurious True values.
+     * * `check_jump` - check if the value changed unexpectedly.
+     */
+    pub fn set_dst(&mut self, value: Option<bool>, announce: Option<bool>, check_jump: bool) {
+        if value.is_none() || announce.is_none() {
+            return;
+        }
+        if self.dst.is_none() {
+            self.dst = Some(0);
+        }
+        // Clear any jump flag from the previous decoding:
+        self.dst = Some(self.dst.unwrap() & !DST_JUMP);
+        // Determine if a DST change is announced:
+        if announce == Some(true) {
+            self.dst_count += 1;
+        }
+        if self.minute.is_some() && self.minute.unwrap() > 0 {
+            if 2 * self.dst_count > self.minutes_running {
+                self.dst = Some(self.dst.unwrap() | DST_ANNOUNCED);
+            } else {
+                self.dst = Some(self.dst.unwrap() & !DST_ANNOUNCED);
+            }
+        }
+        if value.unwrap() != ((self.dst.unwrap() & DST_SUMMER) != 0) {
+            // Time offset changed.
+            if self.first_minute
+                || ((self.dst.unwrap() & DST_ANNOUNCED) != 0 && self.minute == Some(0))
+            {
+                self.first_minute = false;
+                // Change is valid.
+                if value.unwrap() {
+                    self.dst = Some(self.dst.unwrap() | DST_SUMMER);
+                } else {
+                    self.dst = Some(self.dst.unwrap() & !DST_SUMMER);
+                }
+            } else if check_jump {
+                self.dst = Some(self.dst.unwrap() | DST_JUMP);
+            }
+        }
+        if self.minute == Some(0) && (self.dst.unwrap() & DST_ANNOUNCED) != 0 {
+            // DST change processsed:
+            self.dst = Some(self.dst.unwrap() | DST_PROCESSED);
+        } else {
+            self.dst = Some(self.dst.unwrap() & !DST_PROCESSED);
+        }
+        // Always reset announcement at the hour:
+        if self.minute == Some(0) {
+            self.dst = Some(self.dst.unwrap() & !DST_ANNOUNCED);
+            self.dst_count = 0;
+        }
     }
 
     /**

@@ -428,7 +428,7 @@ impl RadioDateTimeUtils {
     }
 
     /**
-     * Set the year minute, valid values are 0 through 59.
+     * Set the minute value, valid values are 0 through 59.
      *
      * # Arguments
      * * `value` - the new minute value. None or invalid values keep the old value.

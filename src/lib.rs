@@ -392,19 +392,20 @@ impl RadioDateTimeUtils {
      * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_day(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
-        let mut day = self.day;
-        let mut days_in_month = Some(31);
-
-        if let Some(s_value) = value {
-            days_in_month = self.last_day(s_value);
-        }
-        if days_in_month.is_some()
-            && value.is_some()
+        let days_in_month = if let Some(s_value) = value {
+            self.last_day(s_value)
+        } else {
+            Some(31)
+        };
+        let day = if value.is_some()
+            && days_in_month.is_some()
             && (1..=days_in_month.unwrap()).contains(&value.unwrap())
             && valid
         {
-            day = value;
-        }
+            value
+        } else {
+            self.day
+        };
         self.jump_day = check_jump && day.is_some() && self.day.is_some() && day != self.day;
         self.day = day;
     }

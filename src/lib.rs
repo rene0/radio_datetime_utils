@@ -685,33 +685,33 @@ mod tests {
     #[test]
     fn test_last_day() {
         let mut dcf77 = RadioDateTimeUtils::new(7);
-        dcf77.set_year(Some(22), true, false);
-        dcf77.set_month(Some(6), true, false);
-        dcf77.set_weekday(Some(7), true, false);
+        dcf77.year = Some(22);
+        dcf77.month = Some(6);
+        dcf77.weekday = Some(7);
         assert_eq!(dcf77.last_day(5), Some(30)); // today, Sunday 2022-06-05
-        dcf77.set_month(Some(2), true, false);
-        dcf77.set_weekday(Some(4), true, false);
+        dcf77.month = Some(2);
+        dcf77.weekday = Some(4);
         assert_eq!(dcf77.last_day(29), Some(28)); // non-existent date, Thursday 22-02-29
-        dcf77.set_year(Some(0), true, false);
-        dcf77.set_month(Some(1), true, false);
-        dcf77.set_weekday(Some(1), true, false);
+        dcf77.year = Some(0);
+        dcf77.month = Some(1);
+        dcf77.weekday = Some(1);
         assert_eq!(dcf77.last_day(1), Some(31)); // first day, weekday off/do-not-care, Monday 00-01-01
-        dcf77.set_year(Some(20), true, false);
-        dcf77.set_month(Some(2), true, false);
+        dcf77.year = Some(20);
+        dcf77.month = Some(2);
         assert_eq!(dcf77.last_day(3), Some(29)); // regular leap year, Wednesday 2020-02-03
-        dcf77.set_weekday(Some(4), true, false);
+        dcf77.weekday = Some(4);
         assert_eq!(dcf77.last_day(3), Some(29)); // same date with bogus weekday, "Thursday" 2020-02-03
-        dcf77.set_year(Some(0), true, false);
-        dcf77.set_weekday(Some(2), true, false);
+        dcf77.year = Some(0);
+        dcf77.weekday = Some(2);
         assert_eq!(dcf77.last_day(1), Some(29)); // century-leap-year, day/weekday must match, Tuesday 2000-02-01
-        dcf77.set_weekday(Some(1), true, false);
+        dcf77.weekday = Some(1);
         assert_eq!(dcf77.last_day(1), Some(28)); // century-regular-year, Monday 2100-02-01
-        dcf77.set_weekday(Some(7), true, false);
+        dcf77.weekday = Some(7);
         assert_eq!(dcf77.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
         let mut npl = RadioDateTimeUtils::new(0);
-        npl.set_year(Some(0), true, false);
-        npl.set_month(Some(2), true, false);
-        npl.set_weekday(Some(0), true, false);
+        npl.year = Some(0);
+        npl.month = Some(2);
+        npl.weekday = Some(0);
         assert_eq!(npl.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
     }
 }

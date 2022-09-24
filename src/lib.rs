@@ -381,10 +381,10 @@ impl RadioDateTimeUtils {
     }
 
     /**
-     * Set the day-in-month value, valid values are 1 through 31.
+     * Set the day-in-month value, valid values are 1 through the last day of that month.
      *
-     * If possible, this function further restricts the range of valid days to the last day
-     * in the current month, taking leap years into account.
+     * If the year, month, or weekday are absent, the last day of the month cannot be
+     * calculated which means the old day-in-month value is kept.
      *
      * # Arguments
      * * `value` - the new day-in-month value. None or invalid values keep the old value.
@@ -392,14 +392,9 @@ impl RadioDateTimeUtils {
      * * `check_jump` - check if the value has jumped unexpectedly compared to `add_minute()`.
      */
     pub fn set_day(&mut self, value: Option<u8>, valid: bool, check_jump: bool) {
-        let days_in_month = if let Some(s_value) = value {
-            self.last_day(s_value)
-        } else {
-            Some(31)
-        };
         let day = if value.is_some()
-            && days_in_month.is_some()
-            && (1..=days_in_month.unwrap()).contains(&value.unwrap())
+            && self.last_day(value.unwrap()).is_some()
+            && (1..=self.last_day(value.unwrap()).unwrap()).contains(&value.unwrap())
             && valid
         {
             value
@@ -683,6 +678,187 @@ mod tests {
     }
 
     #[test]
+    fn test_set_year() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        assert_eq!(rdt.year, None);
+        assert_eq!(rdt.jump_year, false);
+        rdt.set_year(Some(22), false, true);
+        assert_eq!(rdt.year, None);
+        assert_eq!(rdt.jump_year, false);
+        rdt.set_year(None, true, true);
+        assert_eq!(rdt.year, None);
+        assert_eq!(rdt.jump_year, false);
+        rdt.set_year(Some(100), true, false);
+        assert_eq!(rdt.year, None);
+        assert_eq!(rdt.jump_year, false);
+        rdt.set_year(Some(22), true, false);
+        assert_eq!(rdt.year, Some(22));
+        assert_eq!(rdt.jump_year, false);
+        rdt.set_year(Some(100), true, false);
+        assert_eq!(rdt.year, Some(22));
+        assert_eq!(rdt.jump_year, false);
+        rdt.set_year(Some(22), true, true);
+        assert_eq!(rdt.year, Some(22));
+        assert_eq!(rdt.jump_year, false);
+        rdt.set_year(Some(23), true, true);
+        assert_eq!(rdt.year, Some(23));
+        assert_eq!(rdt.jump_year, true);
+    }
+
+    #[test]
+    fn test_set_month() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        assert_eq!(rdt.month, None);
+        assert_eq!(rdt.jump_month, false);
+        rdt.set_month(Some(9), false, true);
+        assert_eq!(rdt.month, None);
+        assert_eq!(rdt.jump_month, false);
+        rdt.set_month(None, true, true);
+        assert_eq!(rdt.month, None);
+        assert_eq!(rdt.jump_month, false);
+        rdt.set_month(Some(0), true, false);
+        assert_eq!(rdt.month, None);
+        assert_eq!(rdt.jump_month, false);
+        rdt.set_month(Some(9), true, false);
+        assert_eq!(rdt.month, Some(9));
+        assert_eq!(rdt.jump_month, false);
+        rdt.set_month(Some(13), true, false);
+        assert_eq!(rdt.month, Some(9));
+        assert_eq!(rdt.jump_month, false);
+        rdt.set_month(Some(9), true, true);
+        assert_eq!(rdt.month, Some(9));
+        assert_eq!(rdt.jump_month, false);
+        rdt.set_month(Some(10), true, true);
+        assert_eq!(rdt.month, Some(10));
+        assert_eq!(rdt.jump_month, true);
+    }
+
+    #[test]
+    fn test_set_day() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        assert_eq!(rdt.day, None);
+        assert_eq!(rdt.jump_day, false);
+        rdt.set_day(Some(23), false, true);
+        assert_eq!(rdt.day, None);
+        assert_eq!(rdt.jump_day, false);
+        rdt.set_day(None, true, true);
+        assert_eq!(rdt.day, None);
+        assert_eq!(rdt.jump_day, false);
+        rdt.set_day(Some(0), true, false);
+        assert_eq!(rdt.day, None);
+        assert_eq!(rdt.jump_day, false);
+        rdt.year = Some(22);
+        rdt.month = Some(9);
+        rdt.weekday = Some(5); // any Some value works here because rdt.month != Some(2)
+        rdt.set_day(Some(23), true, false);
+        assert_eq!(rdt.day, Some(23));
+        assert_eq!(rdt.jump_day, false);
+        rdt.set_day(Some(32), true, false);
+        assert_eq!(rdt.day, Some(23));
+        assert_eq!(rdt.jump_day, false);
+        rdt.set_day(Some(23), true, true);
+        assert_eq!(rdt.day, Some(23));
+        assert_eq!(rdt.jump_day, false);
+        rdt.set_day(Some(24), true, true);
+        assert_eq!(rdt.day, Some(24));
+        assert_eq!(rdt.jump_day, true);
+    }
+
+    #[test]
+    fn test_set_weekday() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        assert_eq!(rdt.weekday, None);
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(5), false, true);
+        assert_eq!(rdt.weekday, None);
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(None, true, true);
+        assert_eq!(rdt.weekday, None);
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(7), true, false);
+        assert_eq!(rdt.weekday, None);
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(5), true, false);
+        assert_eq!(rdt.weekday, Some(5));
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(7), true, false);
+        assert_eq!(rdt.weekday, Some(5));
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(5), true, true);
+        assert_eq!(rdt.weekday, Some(5));
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(6), true, true);
+        assert_eq!(rdt.weekday, Some(6));
+        assert_eq!(rdt.jump_weekday, true);
+        let mut rdt = RadioDateTimeUtils::new(7);
+        rdt.set_weekday(Some(0), true, false);
+        assert_eq!(rdt.weekday, None);
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(5), true, false);
+        assert_eq!(rdt.weekday, Some(5));
+        assert_eq!(rdt.jump_weekday, false);
+        rdt.set_weekday(Some(0), true, false);
+        assert_eq!(rdt.weekday, Some(5));
+        assert_eq!(rdt.jump_weekday, false);
+    }
+
+    #[test]
+    fn test_set_hour() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        assert_eq!(rdt.hour, None);
+        assert_eq!(rdt.jump_hour, false);
+        rdt.set_hour(Some(22), false, true);
+        assert_eq!(rdt.hour, None);
+        assert_eq!(rdt.jump_hour, false);
+        rdt.set_hour(None, true, true);
+        assert_eq!(rdt.hour, None);
+        assert_eq!(rdt.jump_hour, false);
+        rdt.set_hour(Some(24), true, false);
+        assert_eq!(rdt.hour, None);
+        assert_eq!(rdt.jump_hour, false);
+        rdt.set_hour(Some(22), true, false);
+        assert_eq!(rdt.hour, Some(22));
+        assert_eq!(rdt.jump_hour, false);
+        rdt.set_hour(Some(24), true, false);
+        assert_eq!(rdt.hour, Some(22));
+        assert_eq!(rdt.jump_hour, false);
+        rdt.set_hour(Some(22), true, true);
+        assert_eq!(rdt.hour, Some(22));
+        assert_eq!(rdt.jump_hour, false);
+        rdt.set_hour(Some(23), true, true);
+        assert_eq!(rdt.hour, Some(23));
+        assert_eq!(rdt.jump_hour, true);
+    }
+
+    #[test]
+    fn test_set_minute() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        assert_eq!(rdt.minute, None);
+        assert_eq!(rdt.jump_minute, false);
+        rdt.set_minute(Some(47), false, true);
+        assert_eq!(rdt.minute, None);
+        assert_eq!(rdt.jump_minute, false);
+        rdt.set_minute(None, true, true);
+        assert_eq!(rdt.minute, None);
+        assert_eq!(rdt.jump_minute, false);
+        rdt.set_minute(Some(60), true, false);
+        assert_eq!(rdt.minute, None);
+        assert_eq!(rdt.jump_minute, false);
+        rdt.set_minute(Some(47), true, false);
+        assert_eq!(rdt.minute, Some(47));
+        assert_eq!(rdt.jump_minute, false);
+        rdt.set_minute(Some(60), true, false);
+        assert_eq!(rdt.minute, Some(47));
+        assert_eq!(rdt.jump_minute, false);
+        rdt.set_minute(Some(47), true, true);
+        assert_eq!(rdt.minute, Some(47));
+        assert_eq!(rdt.jump_minute, false);
+        rdt.set_minute(Some(48), true, true);
+        assert_eq!(rdt.minute, Some(48));
+        assert_eq!(rdt.jump_minute, true);
+    }
+
+    #[test]
     fn test_last_day() {
         let mut dcf77 = RadioDateTimeUtils::new(7);
         dcf77.year = Some(22);
@@ -713,5 +889,20 @@ mod tests {
         npl.month = Some(2);
         npl.weekday = Some(0);
         assert_eq!(npl.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
+    }
+
+    #[test]
+    fn test_dst() {
+        // TODO implement
+    }
+
+    #[test]
+    fn test_leap_second() {
+        // TODO implement
+    }
+
+    #[test]
+    fn test_add_minute() {
+        // TODO implement
     }
 }

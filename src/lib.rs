@@ -530,7 +530,7 @@ impl RadioDateTimeUtils {
                 // Leap second processed and present:
                 self.leap_second = Some(self.leap_second.unwrap() & !LEAP_MISSING);
             }
-        } else {
+        } else if self.minute.is_some() {
             self.leap_second = Some(self.leap_second.unwrap() & !LEAP_PROCESSED);
         }
         // Always reset announcement at the hour:

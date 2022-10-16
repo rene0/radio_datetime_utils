@@ -286,16 +286,13 @@ impl RadioDateTimeUtils {
             s_hour += 1;
             if s_hour == 24 {
                 s_hour = 0;
-                let old_last_day = self.last_day(s_day);
-                if old_last_day.is_none() {
-                    return false;
-                }
+                let old_last_day = self.last_day(s_day).unwrap();
                 s_weekday += 1;
                 if s_weekday == self.max_weekday + 1 {
                     s_weekday = self.min_weekday;
                 }
                 s_day += 1;
-                if s_day > old_last_day.unwrap() {
+                if s_day > old_last_day {
                     s_day = 1;
                     s_month += 1;
                     if s_month == 13 {

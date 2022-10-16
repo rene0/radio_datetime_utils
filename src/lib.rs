@@ -483,7 +483,7 @@ impl RadioDateTimeUtils {
             }
         }
         if self.minute == Some(0) && (self.dst.unwrap() & DST_ANNOUNCED) != 0 {
-            // DST change processsed:
+            // DST change processed:
             self.dst = Some(self.dst.unwrap() | DST_PROCESSED);
         } else {
             self.dst = Some(self.dst.unwrap() & !DST_PROCESSED);

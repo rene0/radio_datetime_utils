@@ -14,14 +14,12 @@
  * * `t1` - new timestamp in microseconds
  */
 pub fn time_diff(t0: u32, t1: u32) -> u32 {
-    if t1 == t0 {
-        0
-    } else if t1 > t0 {
+    if t1 >= t0 {
         t1 - t0
     } else if t0 > 0 {
         u32::MAX - t0 + t1 + 1 // wrapped, each 1h11m35s
     } else {
-        0 // cannot happen, because t1 < t0 && t0 == 0, but prevents E0317 on Rust 1.61
+        0 // cannot happen, because t1 < t0 && t0 == 0, but prevents E0317 (missing else clause)
     }
 }
 

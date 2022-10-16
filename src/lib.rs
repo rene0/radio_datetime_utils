@@ -619,7 +619,9 @@ fn is_leap_century(day: u8, weekday: u8) -> bool {
 
 #[cfg(test)]
 mod tests {
-    use crate::{get_bcd_value, get_parity, time_diff, RadioDateTimeUtils};
+    use crate::{
+        get_bcd_value, get_parity, time_diff, RadioDateTimeUtils, DST_ANNOUNCED, DST_SUMMER,
+    };
 
     #[test]
     fn test_time_diff() {
@@ -901,6 +903,74 @@ mod tests {
 
     #[test]
     fn test_add_minute() {
-        // TODO implement
+        let mut rdt = RadioDateTimeUtils::new(0);
+        // Test invalid input:
+        assert_eq!(rdt.add_minute(), false);
+        assert_eq!(rdt.minute, None);
+        // Test the big century flip, these fields must all be set:
+        rdt.minute = Some(59);
+        rdt.hour = Some(23);
+        rdt.day = Some(31);
+        rdt.month = Some(12);
+        rdt.year = Some(99);
+        rdt.weekday = Some(5); // 1999-12-31 is a Friday
+        rdt.dst = Some(0); // no flags set, i.e. daylight saving time unset
+        assert_eq!(rdt.add_minute(), true);
+        assert_eq!(rdt.minute, Some(0));
+        assert_eq!(rdt.hour, Some(0));
+        assert_eq!(rdt.day, Some(1));
+        assert_eq!(rdt.month, Some(1));
+        assert_eq!(rdt.year, Some(0));
+        assert_eq!(rdt.weekday, Some(6));
+        // Test DST becoming active, any hour and date are fine:
+        rdt.minute = Some(59);
+        rdt.hour = Some(17);
+        rdt.dst = Some(DST_ANNOUNCED);
+        assert_eq!(rdt.add_minute(), true);
+        assert_eq!(rdt.dst, Some(DST_ANNOUNCED)); // add_minute() does not change any DST flag
+        assert_eq!(rdt.minute, Some(0));
+        assert_eq!(rdt.hour, Some(19));
+        assert_eq!(rdt.day, Some(1));
+        assert_eq!(rdt.month, Some(1));
+        assert_eq!(rdt.year, Some(0));
+        assert_eq!(rdt.weekday, Some(6));
+        // Test DST becoming inactive:
+        rdt.minute = Some(59);
+        rdt.dst = Some(DST_SUMMER | DST_ANNOUNCED);
+        assert_eq!(rdt.add_minute(), true);
+        assert_eq!(rdt.dst, Some(DST_SUMMER | DST_ANNOUNCED)); // add_minute() does not change any DST flag
+        assert_eq!(rdt.minute, Some(0));
+        assert_eq!(rdt.hour, Some(19));
+        assert_eq!(rdt.day, Some(1));
+        assert_eq!(rdt.month, Some(1));
+        assert_eq!(rdt.year, Some(0));
+        assert_eq!(rdt.weekday, Some(6));
+        // Test flipping to min_weekday (NPL), Saturday 6 -> Sunday 0:
+        rdt.minute = Some(59);
+        rdt.hour = Some(23);
+        rdt.dst = Some(0);
+        assert_eq!(rdt.add_minute(), true);
+        assert_eq!(rdt.minute, Some(0));
+        assert_eq!(rdt.hour, Some(0));
+        assert_eq!(rdt.day, Some(2));
+        assert_eq!(rdt.month, Some(1));
+        assert_eq!(rdt.year, Some(0));
+        assert_eq!(rdt.weekday, Some(0));
+        // Test flipping to min_weekday (DCF77), Sunday 7 -> Monday 1:
+        rdt = RadioDateTimeUtils::new(7);
+        rdt.minute = Some(59);
+        rdt.hour = Some(23);
+        rdt.day = Some(2);
+        rdt.month = Some(1);
+        rdt.year = Some(0);
+        rdt.weekday = Some(7); // 2000-01-02 is a Sunday
+        rdt.dst = Some(0); // no flags set, i.e. daylight saving time unset
+        assert_eq!(rdt.add_minute(), true);
+        assert_eq!(rdt.minute, Some(0));
+        assert_eq!(rdt.hour, Some(0));
+        assert_eq!(rdt.day, Some(3));
+        assert_eq!(rdt.month, Some(1));
+        assert_eq!(rdt.year, Some(0));
+        assert_eq!(rdt.weekday, Some(1));
     }
 }

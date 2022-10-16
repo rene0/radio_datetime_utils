@@ -607,6 +607,7 @@ impl RadioDateTimeUtils {
  * * `day` - day of the month in February '00
  * * `weekday` - day of the week in February '00
  */
+#[inline]
 fn is_leap_century(day: u8, weekday: u8) -> bool {
     let mut wd = weekday % 7;
     if wd == 0 {

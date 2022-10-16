@@ -884,6 +884,9 @@ mod tests {
         npl.month = Some(2);
         npl.weekday = Some(0);
         assert_eq!(npl.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
+        assert_eq!(npl.last_day(32), None); // invalid input
+        npl.weekday = None;
+        assert_eq!(npl.last_day(6), None); // invalid input
     }
 
     #[test]

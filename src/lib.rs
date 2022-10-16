@@ -82,9 +82,9 @@ pub fn get_parity(
     stop: usize,
     parity: Option<bool>,
 ) -> Option<bool> {
-    let (p0, p1) = min_max(start, stop);
     parity?;
     let mut par = parity.unwrap();
+    let (p0, p1) = min_max(start, stop);
     for bit in &bit_buffer[p0..=p1] {
         (*bit)?;
         par ^= bit.unwrap();

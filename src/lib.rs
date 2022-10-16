@@ -505,7 +505,7 @@ impl RadioDateTimeUtils {
      * * `minute_length` - the length of the decoded minute in seconds.
      */
     pub fn set_leap_second(&mut self, announce: Option<bool>, minute_length: u8) {
-        if announce.is_none() {
+        if announce.is_none() || !(60..=61).contains(&minute_length) {
             return;
         }
         if self.leap_second.is_none() {

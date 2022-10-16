@@ -619,6 +619,7 @@ fn is_leap_century(day: u8, weekday: u8) -> bool {
 mod tests {
     use crate::{
         get_bcd_value, get_parity, time_diff, RadioDateTimeUtils, DST_ANNOUNCED, DST_SUMMER,
+        LEAP_ANNOUNCED, LEAP_MISSING, LEAP_PROCESSED,
     };
 
     #[test]
@@ -896,7 +897,55 @@ mod tests {
 
     #[test]
     fn test_leap_second() {
-        // TODO implement
+        let mut rdt = RadioDateTimeUtils::new(7);
+        assert_eq!(rdt.leap_second_count, 0);
+        // Simple initial minute update, no announcement:
+        rdt.minute = Some(11);
+        rdt.set_leap_second(Some(false), 60);
+        assert_eq!(rdt.leap_second, Some(0)); // no flags
+        assert_eq!(rdt.leap_second_count, 0);
+        // Simple initial minute update at top-of-hour, no announcement:
+        rdt.leap_second = None; // reset, not possible from API
+        rdt.minute = Some(0);
+        rdt.set_leap_second(Some(false), 60);
+        assert_eq!(rdt.leap_second, Some(0)); // no flags
+        assert_eq!(rdt.leap_second_count, 0);
+        // A bit further in the hour. no announcement:
+        rdt.minute = Some(15);
+        rdt.minutes_running = 15;
+        rdt.set_leap_second(Some(false), 60);
+        assert_eq!(rdt.leap_second, Some(0)); // no flags
+        assert_eq!(rdt.leap_second_count, 0);
+        // Leap second announced spuriously:
+        rdt.set_leap_second(Some(true), 60);
+        assert_eq!(rdt.leap_second, Some(0)); // no flags
+        assert_eq!(rdt.leap_second_count, 1);
+        // Change our mind, the previous announcement was valid:
+        rdt.minute = Some(0);
+        rdt.minutes_running = 0;
+        rdt.leap_second_count = 0;
+        // Do not cheat with self.leap_second_count:
+        for _ in 0..10 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_leap_second(Some(true), 60);
+        }
+        assert_eq!(rdt.leap_second, Some(LEAP_ANNOUNCED));
+        assert_eq!(rdt.minutes_running, 10);
+        assert_eq!(rdt.leap_second_count, 10);
+        // Missing leap second (case for a present leap second is symmetrical).
+        // Announcement bit was gone, but there should be enough evidence:
+        rdt.minute = Some(0);
+        assert_eq!(rdt.leap_second, Some(LEAP_ANNOUNCED));
+        rdt.set_leap_second(Some(false), 60 /* not 61 */);
+        // Top of hour, so announcement should be reset:
+        assert_eq!(rdt.leap_second, Some(LEAP_PROCESSED | LEAP_MISSING));
+        assert_eq!(rdt.leap_second_count, 0);
+        // Nothing should happen:
+        rdt.minute = None;
+        rdt.set_leap_second(Some(true), 61);
+        assert_eq!(rdt.leap_second, Some(LEAP_PROCESSED | LEAP_MISSING));
+        assert_eq!(rdt.leap_second_count, 1);
     }
 
     #[test]

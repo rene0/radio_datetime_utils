@@ -3,8 +3,6 @@
 //! Build with no_std for embedded platforms.
 #![cfg_attr(not(test), no_std)]
 
-use heapless::Vec;
-
 /**
  * Return the difference in microseconds between two timestamps.
  *
@@ -41,20 +39,18 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     if p1 - p0 >= MAX_RANGE {
         return None;
     }
-    let mut r: Vec<bool, MAX_RANGE> = Vec::new();
-    for b in &bit_buffer[p0..=p1] {
-        if b.is_none() || r.push(b.unwrap()).is_err() {
-            return None;
-        }
-    }
-    if stop < start {
-        r.reverse();
-    }
-
     let mut bcd = 0;
     let mut mult = 1;
-    for bit in r {
-        bcd += mult * if bit { 1 } else { 0 };
+    // Index the bits using a manual loop instead of enumerating them in a range. Doing so obsoletes
+    // the need to first flip the range if start > stop which seemed only be possible using
+    // heapless:Vec when in no_std mode. This dependency is now removed.
+    let mut idx = start;
+    let step: isize = if start < stop { 1 } else { -1 };
+    // The test value for idx is usize::MAX if stop is 0 but we stop just in time.
+    while idx != (stop as isize + step) as usize {
+        let bit = bit_buffer[idx];
+        bit?;
+        bcd += mult * if bit.unwrap() { 1 } else { 0 };
         mult *= 2;
         if mult == 16 {
             if bcd > 9 {
@@ -62,6 +58,7 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
             }
             mult = 10;
         }
+        idx = (idx as isize + step) as usize;
     }
     if bcd < 100 {
         Some(bcd)

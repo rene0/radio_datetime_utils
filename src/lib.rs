@@ -622,11 +622,23 @@ mod tests {
     };
 
     #[test]
-    fn test_time_diff() {
+    fn test_time_diff_difference_1() {
         assert_eq!(time_diff(2, 3), 1);
+    }
+    #[test]
+    fn test_time_diff_difference_3() {
         assert_eq!(time_diff(0, 3), 3);
-        assert_eq!(time_diff(u32::MAX - 100, 0), 101); // flipped
-        assert_eq!(time_diff(u32::MAX - 100, 100), 201); // also flipped
+    }
+    #[test]
+    fn test_time_diff_flipped_m100_0() {
+        assert_eq!(time_diff(u32::MAX - 100, 0), 101);
+    }
+    #[test]
+    fn test_time_diff_flipped_m100_100() {
+        assert_eq!(time_diff(u32::MAX - 100, 100), 201);
+    }
+    #[test]
+    fn test_time_diff_zero() {
         assert_eq!(time_diff(2, 2), 0);
     }
 
@@ -644,249 +656,487 @@ mod tests {
     ];
 
     #[test]
-    fn test_get_bcd_value() {
+    fn ok_get_bcd_value_regular() {
         assert_eq!(get_bcd_value(&BIT_BUFFER[0..=4], 0, 4), Some(12));
+    }
+    #[test]
+    fn ok_get_bcd_value_single_bit() {
         assert_eq!(get_bcd_value(&BIT_BUFFER[1..=1], 0, 0), Some(1)); // single-bit value, must be a slice
-        assert_eq!(get_bcd_value(&BIT_BUFFER[0..=7], 0, 7), None); // too large for BCD, test 8 bit range
-        assert_eq!(get_bcd_value(&BIT_BUFFER[4..=7], 0, 3), None); // too large for BCD
-        assert_eq!(get_bcd_value(&BIT_BUFFER[7..=9], 0, 2), None); // has a None value
-        assert_eq!(get_bcd_value(&BIT_BUFFER, 0, 9), None); // range too wide
-        assert_eq!(get_bcd_value(&BIT_BUFFER[0..=5], 5, 0), Some(13)); // backwards
-        assert_ne!(get_bcd_value(&BIT_BUFFER[0..=5], 5, 0), Some(32)); // backwards with forwards result
+    }
+    #[test]
+    fn bad_get_bcd_value_too_large_total_bcd() {
+        assert_eq!(get_bcd_value(&BIT_BUFFER[0..=7], 0, 7), None);
+    }
+    #[test]
+    fn bad_get_bcd_value_too_large_single_bcd() {
+        assert_eq!(get_bcd_value(&BIT_BUFFER[4..=7], 0, 3), None);
+    }
+    #[test]
+    fn bad_get_bcd_value_none() {
+        assert_eq!(get_bcd_value(&BIT_BUFFER[7..=9], 0, 2), None);
+    }
+    #[test]
+    fn bad_get_bcd_value_too_wide() {
+        assert_eq!(get_bcd_value(&BIT_BUFFER, 0, 9), None);
+    }
+    #[test]
+    fn ok_get_bcd_value_backwards() {
+        assert_eq!(get_bcd_value(&BIT_BUFFER[0..=5], 5, 0), Some(13));
     }
 
     #[test]
-    fn test_get_parity() {
+    fn ok_get_parity_regular_even() {
         assert_eq!(
             get_parity(&BIT_BUFFER[0..=4], 0, 3, BIT_BUFFER[4]),
             Some(false)
         );
-        assert_eq!(get_parity(&BIT_BUFFER[7..=9], 0, 1, BIT_BUFFER[2]), None); // has a None value
+    }
+    #[test]
+    fn bad_get_parity_none() {
+        assert_eq!(get_parity(&BIT_BUFFER[7..=9], 0, 1, BIT_BUFFER[2]), None);
+    }
+    #[test]
+    fn ok_get_parity_regular_odd() {
         assert_eq!(
             get_parity(&BIT_BUFFER[0..=3], 0, 2, BIT_BUFFER[3]),
             Some(true)
         );
+    }
+    #[test]
+    fn ok_get_parity_backwards() {
         assert_eq!(
             get_parity(&BIT_BUFFER[0..=3], 3, 1, BIT_BUFFER[0]),
             Some(true)
-        ); // backwards
+        );
     }
 
     #[test]
-    fn test_set_year() {
+    fn test_set_year_some_invalid_jump() {
         let mut rdt = RadioDateTimeUtils::new(0);
-        assert_eq!(rdt.year, None);
-        assert_eq!(rdt.jump_year, false);
         rdt.set_year(Some(22), false, true);
         assert_eq!(rdt.year, None);
         assert_eq!(rdt.jump_year, false);
+    }
+    #[test]
+    fn test_set_year_none_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_year(None, true, true);
         assert_eq!(rdt.year, None);
         assert_eq!(rdt.jump_year, false);
+    }
+    #[test]
+    fn test_set_year_too_large_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_year(Some(100), true, false);
         assert_eq!(rdt.year, None);
         assert_eq!(rdt.jump_year, false);
+    }
+    #[test]
+    fn test_set_year_some_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_year(Some(22), true, false);
         assert_eq!(rdt.year, Some(22));
         assert_eq!(rdt.jump_year, false);
-        rdt.set_year(Some(100), true, false);
+    }
+    #[test]
+    fn continue_set_year_too_large_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_year(Some(22), true, false);
+        rdt.set_year(Some(100), true, true);
         assert_eq!(rdt.year, Some(22));
         assert_eq!(rdt.jump_year, false);
+    }
+    #[test]
+    fn test_set_year_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_year(Some(22), true, true);
         assert_eq!(rdt.year, Some(22));
         assert_eq!(rdt.jump_year, false);
+    }
+    #[test]
+    fn continue_set_year_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_year(Some(22), true, true);
         rdt.set_year(Some(23), true, true);
         assert_eq!(rdt.year, Some(23));
         assert_eq!(rdt.jump_year, true);
     }
 
     #[test]
-    fn test_set_month() {
+    fn test_set_month_some_invalid_jump() {
         let mut rdt = RadioDateTimeUtils::new(0);
-        assert_eq!(rdt.month, None);
-        assert_eq!(rdt.jump_month, false);
         rdt.set_month(Some(9), false, true);
         assert_eq!(rdt.month, None);
         assert_eq!(rdt.jump_month, false);
+    }
+    #[test]
+    fn test_set_month_none_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_month(None, true, true);
         assert_eq!(rdt.month, None);
         assert_eq!(rdt.jump_month, false);
+    }
+    #[test]
+    fn test_set_month_too_small_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_month(Some(0), true, false);
         assert_eq!(rdt.month, None);
         assert_eq!(rdt.jump_month, false);
+    }
+    #[test]
+    fn test_set_month_some_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_month(Some(9), true, false);
         assert_eq!(rdt.month, Some(9));
         assert_eq!(rdt.jump_month, false);
-        rdt.set_month(Some(13), true, false);
+    }
+    #[test]
+    fn continue_set_month_too_large_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_month(Some(9), true, false);
+        rdt.set_month(Some(13), true, true);
         assert_eq!(rdt.month, Some(9));
         assert_eq!(rdt.jump_month, false);
+    }
+    #[test]
+    fn test_set_month_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_month(Some(9), true, true);
         assert_eq!(rdt.month, Some(9));
         assert_eq!(rdt.jump_month, false);
+    }
+    #[test]
+    fn continue_set_month_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_month(Some(9), true, true);
         rdt.set_month(Some(10), true, true);
         assert_eq!(rdt.month, Some(10));
         assert_eq!(rdt.jump_month, true);
     }
 
     #[test]
-    fn test_set_day() {
+    fn test_set_day_some_invalid_jump() {
         let mut rdt = RadioDateTimeUtils::new(0);
-        assert_eq!(rdt.day, None);
-        assert_eq!(rdt.jump_day, false);
         rdt.set_day(Some(23), false, true);
         assert_eq!(rdt.day, None);
         assert_eq!(rdt.jump_day, false);
+    }
+    #[test]
+    fn test_set_day_none_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_day(None, true, true);
         assert_eq!(rdt.day, None);
         assert_eq!(rdt.jump_day, false);
+    }
+    #[test]
+    fn test_set_day_too_small_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_day(Some(0), true, false);
         assert_eq!(rdt.day, None);
         assert_eq!(rdt.jump_day, false);
+    }
+    #[test]
+    fn test_set_day_some_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        // set_day() requires a full date and weekday to work
+        rdt.year = Some(22);
+        rdt.month = Some(9);
+        rdt.weekday = Some(10); // any Some value works here because rdt.month != Some(2)
+        rdt.set_day(Some(23), true, false);
+        assert_eq!(rdt.day, Some(23));
+        assert_eq!(rdt.jump_day, false);
+    }
+    #[test]
+    fn continue_set_day_too_large_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        // set_day() requires a full date and weekday to work
         rdt.year = Some(22);
         rdt.month = Some(9);
         rdt.weekday = Some(5); // any Some value works here because rdt.month != Some(2)
         rdt.set_day(Some(23), true, false);
+        rdt.set_day(Some(32), true, true);
         assert_eq!(rdt.day, Some(23));
         assert_eq!(rdt.jump_day, false);
-        rdt.set_day(Some(32), true, false);
-        assert_eq!(rdt.day, Some(23));
-        assert_eq!(rdt.jump_day, false);
+    }
+    #[test]
+    fn test_set_day_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.year = Some(22);
+        rdt.month = Some(9);
+        rdt.weekday = Some(0); // any Some value works here because rdt.month != Some(2)
         rdt.set_day(Some(23), true, true);
         assert_eq!(rdt.day, Some(23));
         assert_eq!(rdt.jump_day, false);
+    }
+    #[test]
+    fn continue_set_day_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.year = Some(22);
+        rdt.month = Some(9);
+        rdt.weekday = Some(7); // any Some value works here because rdt.month != Some(2)
+        rdt.set_day(Some(23), true, true);
         rdt.set_day(Some(24), true, true);
         assert_eq!(rdt.day, Some(24));
         assert_eq!(rdt.jump_day, true);
     }
 
     #[test]
-    fn test_set_weekday() {
+    fn test_set_weekday_some_invalid_jump() {
         let mut rdt = RadioDateTimeUtils::new(0);
-        assert_eq!(rdt.weekday, None);
-        assert_eq!(rdt.jump_weekday, false);
         rdt.set_weekday(Some(5), false, true);
         assert_eq!(rdt.weekday, None);
         assert_eq!(rdt.jump_weekday, false);
+    }
+    #[test]
+    fn test_set_weekday_none_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_weekday(None, true, true);
         assert_eq!(rdt.weekday, None);
         assert_eq!(rdt.jump_weekday, false);
+    }
+    #[test]
+    fn test_set_weekday_too_large_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_weekday(Some(7), true, false);
         assert_eq!(rdt.weekday, None);
         assert_eq!(rdt.jump_weekday, false);
+    }
+    #[test]
+    fn test_set_weekday_some_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_weekday(Some(5), true, false);
         assert_eq!(rdt.weekday, Some(5));
         assert_eq!(rdt.jump_weekday, false);
-        rdt.set_weekday(Some(7), true, false);
+    }
+    #[test]
+    fn continue_set_weekday_too_large_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_weekday(Some(5), true, false);
+        rdt.set_weekday(Some(7), true, true);
         assert_eq!(rdt.weekday, Some(5));
         assert_eq!(rdt.jump_weekday, false);
+    }
+    #[test]
+    fn test_set_weekday_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_weekday(Some(5), true, true);
         assert_eq!(rdt.weekday, Some(5));
         assert_eq!(rdt.jump_weekday, false);
+    }
+    #[test]
+    fn continue_set_weekday_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_weekday(Some(5), true, true);
         rdt.set_weekday(Some(6), true, true);
         assert_eq!(rdt.weekday, Some(6));
         assert_eq!(rdt.jump_weekday, true);
+    }
+    #[test]
+    fn test_set_weekday7_too_small_valid_no_jump() {
         let mut rdt = RadioDateTimeUtils::new(7);
         rdt.set_weekday(Some(0), true, false);
         assert_eq!(rdt.weekday, None);
         assert_eq!(rdt.jump_weekday, false);
+    }
+    #[test]
+    fn continue_set_weekday7_too_small_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(7);
         rdt.set_weekday(Some(5), true, false);
-        assert_eq!(rdt.weekday, Some(5));
-        assert_eq!(rdt.jump_weekday, false);
-        rdt.set_weekday(Some(0), true, false);
+        rdt.set_weekday(Some(0), true, true);
         assert_eq!(rdt.weekday, Some(5));
         assert_eq!(rdt.jump_weekday, false);
     }
 
     #[test]
-    fn test_set_hour() {
+    fn test_set_hour_some_invalid_jump() {
         let mut rdt = RadioDateTimeUtils::new(0);
-        assert_eq!(rdt.hour, None);
-        assert_eq!(rdt.jump_hour, false);
         rdt.set_hour(Some(22), false, true);
         assert_eq!(rdt.hour, None);
         assert_eq!(rdt.jump_hour, false);
+    }
+    #[test]
+    fn test_set_hour_none_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_hour(None, true, true);
         assert_eq!(rdt.hour, None);
         assert_eq!(rdt.jump_hour, false);
+    }
+    #[test]
+    fn test_set_hour_too_large_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_hour(Some(24), true, false);
         assert_eq!(rdt.hour, None);
         assert_eq!(rdt.jump_hour, false);
+    }
+    #[test]
+    fn test_set_hour_some_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_hour(Some(22), true, false);
         assert_eq!(rdt.hour, Some(22));
         assert_eq!(rdt.jump_hour, false);
-        rdt.set_hour(Some(24), true, false);
+    }
+    #[test]
+    fn continue_set_hour_too_large_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_hour(Some(22), true, false);
+        rdt.set_hour(Some(24), true, true);
         assert_eq!(rdt.hour, Some(22));
         assert_eq!(rdt.jump_hour, false);
+    }
+    #[test]
+    fn test_set_hour_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_hour(Some(22), true, true);
         assert_eq!(rdt.hour, Some(22));
         assert_eq!(rdt.jump_hour, false);
+    }
+    #[test]
+    fn continue_set_hour_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_hour(Some(22), true, true);
         rdt.set_hour(Some(23), true, true);
         assert_eq!(rdt.hour, Some(23));
         assert_eq!(rdt.jump_hour, true);
     }
 
     #[test]
-    fn test_set_minute() {
+    fn test_set_minute_some_invalid_jump() {
         let mut rdt = RadioDateTimeUtils::new(0);
-        assert_eq!(rdt.minute, None);
-        assert_eq!(rdt.jump_minute, false);
         rdt.set_minute(Some(47), false, true);
         assert_eq!(rdt.minute, None);
         assert_eq!(rdt.jump_minute, false);
+    }
+    #[test]
+    fn test_set_minute_none_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_minute(None, true, true);
         assert_eq!(rdt.minute, None);
         assert_eq!(rdt.jump_minute, false);
+    }
+    #[test]
+    fn test_set_minute_too_large_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_minute(Some(60), true, false);
         assert_eq!(rdt.minute, None);
         assert_eq!(rdt.jump_minute, false);
+    }
+    #[test]
+    fn test_set_minute_some_valid_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_minute(Some(47), true, false);
         assert_eq!(rdt.minute, Some(47));
         assert_eq!(rdt.jump_minute, false);
-        rdt.set_minute(Some(60), true, false);
+    }
+    #[test]
+    fn continue_set_minute_too_large_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_minute(Some(47), true, false);
+        rdt.set_minute(Some(60), true, true);
         assert_eq!(rdt.minute, Some(47));
         assert_eq!(rdt.jump_minute, false);
+    }
+    #[test]
+    fn test_set_minute_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_minute(Some(47), true, true);
         assert_eq!(rdt.minute, Some(47));
         assert_eq!(rdt.jump_minute, false);
+    }
+    #[test]
+    fn continue_set_minute_some_valid_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.set_minute(Some(47), true, true);
         rdt.set_minute(Some(48), true, true);
         assert_eq!(rdt.minute, Some(48));
         assert_eq!(rdt.jump_minute, true);
     }
 
     #[test]
-    fn test_last_day() {
+    fn test_last_day7_regular() {
         let mut dcf77 = RadioDateTimeUtils::new(7);
         dcf77.year = Some(22);
         dcf77.month = Some(6);
         dcf77.weekday = Some(7);
         assert_eq!(dcf77.last_day(5), Some(30)); // today, Sunday 2022-06-05
+    }
+    #[test]
+    fn test_last_day7_non_existent() {
+        let mut dcf77 = RadioDateTimeUtils::new(7);
+        dcf77.year = Some(22);
         dcf77.month = Some(2);
         dcf77.weekday = Some(4);
         assert_eq!(dcf77.last_day(29), Some(28)); // non-existent date, Thursday 22-02-29
+    }
+    #[test]
+    fn test_last_day7_happy_new_year() {
+        let mut dcf77 = RadioDateTimeUtils::new(7);
         dcf77.year = Some(0);
         dcf77.month = Some(1);
         dcf77.weekday = Some(1);
         assert_eq!(dcf77.last_day(1), Some(31)); // first day, weekday off/do-not-care, Monday 00-01-01
+    }
+    #[test]
+    fn test_last_day7_regular_leap() {
+        let mut dcf77 = RadioDateTimeUtils::new(7);
         dcf77.year = Some(20);
         dcf77.month = Some(2);
+        dcf77.weekday = Some(3);
         assert_eq!(dcf77.last_day(3), Some(29)); // regular leap year, Wednesday 2020-02-03
+    }
+    #[test]
+    fn test_last_day7_bogus_weekday() {
+        let mut dcf77 = RadioDateTimeUtils::new(7);
+        dcf77.year = Some(20);
+        dcf77.month = Some(2);
         dcf77.weekday = Some(4);
         assert_eq!(dcf77.last_day(3), Some(29)); // same date with bogus weekday, "Thursday" 2020-02-03
+    }
+    #[test]
+    fn test_last_day7_century_leap_1() {
+        let mut dcf77 = RadioDateTimeUtils::new(7);
         dcf77.year = Some(0);
+        dcf77.month = Some(2);
         dcf77.weekday = Some(2);
         assert_eq!(dcf77.last_day(1), Some(29)); // century-leap-year, day/weekday must match, Tuesday 2000-02-01
+    }
+    #[test]
+    fn test_last_day7_century_regular() {
+        let mut dcf77 = RadioDateTimeUtils::new(7);
+        dcf77.year = Some(0);
+        dcf77.month = Some(2);
         dcf77.weekday = Some(1);
         assert_eq!(dcf77.last_day(1), Some(28)); // century-regular-year, Monday 2100-02-01
+    }
+    #[test]
+    fn test_last_day7_century_leap_6() {
+        let mut dcf77 = RadioDateTimeUtils::new(7);
+        dcf77.year = Some(0);
+        dcf77.month = Some(2);
         dcf77.weekday = Some(7);
         assert_eq!(dcf77.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
+    }
+    #[test]
+    fn test_last_day0_century_leap() {
         let mut npl = RadioDateTimeUtils::new(0);
         npl.year = Some(0);
         npl.month = Some(2);
         npl.weekday = Some(0);
         assert_eq!(npl.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
-        assert_eq!(npl.last_day(32), None); // invalid input
-        npl.weekday = None;
-        assert_eq!(npl.last_day(6), None); // invalid input
+    }
+    #[test]
+    fn test_last_day0_too_large_day() {
+        let mut npl = RadioDateTimeUtils::new(0);
+        npl.year = Some(0);
+        npl.month = Some(2);
+        npl.weekday = Some(0);
+        assert_eq!(npl.last_day(32), None); // invalid input, Sunday 00-02-32
+    }
+    #[test]
+    fn test_last_day0_none_weekday() {
+        let mut npl = RadioDateTimeUtils::new(0);
+        npl.year = Some(0);
+        npl.month = Some(2);
+        assert_eq!(npl.last_day(6), None); // invalid input, None-day 00-02-06
     }
 
     #[test]
@@ -895,35 +1145,49 @@ mod tests {
     }
 
     #[test]
-    fn test_leap_second() {
+    fn test_leap_second_some_starting_no_announcement() {
         let mut rdt = RadioDateTimeUtils::new(7);
-        assert_eq!(rdt.leap_second_count, 0);
         // Simple initial minute update, no announcement:
         rdt.minute = Some(11);
         rdt.set_leap_second(Some(false), 60);
         assert_eq!(rdt.leap_second, Some(0)); // no flags
         assert_eq!(rdt.leap_second_count, 0);
+    }
+    #[test]
+    fn test_leap_second_starting_at_new_hour_no_announcement() {
+        let mut rdt = RadioDateTimeUtils::new(7);
         // Simple initial minute update at top-of-hour, no announcement:
-        rdt.leap_second = None; // reset, not possible from API
         rdt.minute = Some(0);
         rdt.set_leap_second(Some(false), 60);
         assert_eq!(rdt.leap_second, Some(0)); // no flags
         assert_eq!(rdt.leap_second_count, 0);
+    }
+    #[test]
+    fn test_leap_second_running_no_announcement() {
+        let mut rdt = RadioDateTimeUtils::new(7);
         // A bit further in the hour. no announcement:
         rdt.minute = Some(15);
         rdt.minutes_running = 15;
         rdt.set_leap_second(Some(false), 60);
         assert_eq!(rdt.leap_second, Some(0)); // no flags
         assert_eq!(rdt.leap_second_count, 0);
+    }
+    #[test]
+    fn test_leap_second_spurious_announcement() {
+        let mut rdt = RadioDateTimeUtils::new(7);
         // Leap second announced spuriously:
+        rdt.minute = Some(15);
+        rdt.minutes_running = 15;
         rdt.set_leap_second(Some(true), 60);
         assert_eq!(rdt.leap_second, Some(0)); // no flags
         assert_eq!(rdt.leap_second_count, 1);
+    }
+    #[test]
+    fn test_leap_second_announced() {
+        let mut rdt = RadioDateTimeUtils::new(7);
         // Change our mind, the previous announcement was valid:
-        rdt.minute = Some(0);
-        rdt.minutes_running = 0;
-        rdt.leap_second_count = 0;
         // Do not cheat with self.leap_second_count:
+        rdt.minute = Some(0);
         for _ in 0..10 {
             rdt.minute = Some(rdt.minute.unwrap() + 1);
             rdt.minutes_running += 1;
@@ -932,15 +1196,56 @@ mod tests {
         assert_eq!(rdt.leap_second, Some(LEAP_ANNOUNCED));
         assert_eq!(rdt.minutes_running, 10);
         assert_eq!(rdt.leap_second_count, 10);
-        // Missing leap second (case for a present leap second is symmetrical).
+    }
+    #[test]
+    fn continue_leap_second_missing() {
+        let mut rdt = RadioDateTimeUtils::new(7);
+        // Missing leap second.
         // Announcement bit was gone, but there should be enough evidence:
         rdt.minute = Some(0);
+        for _ in 0..11 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_leap_second(Some(true), 60);
+        }
         assert_eq!(rdt.leap_second, Some(LEAP_ANNOUNCED));
+        rdt.minute = Some(0);
         rdt.set_leap_second(Some(false), 60 /* not 61 */);
         // Top of hour, so announcement should be reset:
         assert_eq!(rdt.leap_second, Some(LEAP_PROCESSED | LEAP_MISSING));
         assert_eq!(rdt.leap_second_count, 0);
+    }
+    #[test]
+    fn continue_leap_second_present() {
+        let mut rdt = RadioDateTimeUtils::new(7);
+        // We got a leap second.
+        // Announcement bit was gone, but there should be enough evidence:
+        rdt.minute = Some(0);
+        for _ in 0..12 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_leap_second(Some(true), 60);
+        }
+        assert_eq!(rdt.leap_second, Some(LEAP_ANNOUNCED));
+        rdt.minute = Some(0);
+        rdt.set_leap_second(Some(false), 61);
+        // Top of hour, so announcement should be reset:
+        assert_eq!(rdt.leap_second, Some(LEAP_PROCESSED));
+        assert_eq!(rdt.leap_second_count, 0);
+    }
+    #[test]
+    fn continue2_leap_second_none_minute() {
+        let mut rdt = RadioDateTimeUtils::new(7);
         // Nothing should happen:
+        rdt.minute = Some(0);
+        for _ in 0..13 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_leap_second(Some(true), 60);
+        }
+        assert_eq!(rdt.leap_second, Some(LEAP_ANNOUNCED));
+        rdt.minute = Some(0);
+        rdt.set_leap_second(Some(false), 60 /* not 61 */);
         rdt.minute = None;
         rdt.set_leap_second(Some(true), 61);
         assert_eq!(rdt.leap_second, Some(LEAP_PROCESSED | LEAP_MISSING));
@@ -948,11 +1253,15 @@ mod tests {
     }
 
     #[test]
-    fn test_add_minute() {
+    fn test_add_minute_invalid_input() {
         let mut rdt = RadioDateTimeUtils::new(0);
         // Test invalid input:
         assert_eq!(rdt.add_minute(), false);
         assert_eq!(rdt.minute, None);
+    }
+    #[test]
+    fn test_add_minute_century_flip() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         // Test the big century flip, these fields must all be set:
         rdt.minute = Some(59);
         rdt.hour = Some(23);
@@ -968,9 +1277,17 @@ mod tests {
         assert_eq!(rdt.month, Some(1));
         assert_eq!(rdt.year, Some(0));
         assert_eq!(rdt.weekday, Some(6));
+    }
+    #[test]
+    fn test_add_minute_set_dst() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         // Test DST becoming active, any hour and date are fine:
         rdt.minute = Some(59);
         rdt.hour = Some(17);
+        rdt.day = Some(1);
+        rdt.month = Some(1);
+        rdt.year = Some(0);
+        rdt.weekday = Some(6); // 2000-01-01 is a Saturday
         rdt.dst = Some(DST_ANNOUNCED);
         assert_eq!(rdt.add_minute(), true);
         assert_eq!(rdt.dst, Some(DST_ANNOUNCED)); // add_minute() does not change any DST flag
@@ -980,8 +1297,17 @@ mod tests {
         assert_eq!(rdt.month, Some(1));
         assert_eq!(rdt.year, Some(0));
         assert_eq!(rdt.weekday, Some(6));
+    }
+    #[test]
+    fn test_add_minute_unset_dst() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         // Test DST becoming inactive:
         rdt.minute = Some(59);
+        rdt.hour = Some(19);
+        rdt.day = Some(1);
+        rdt.month = Some(1);
+        rdt.year = Some(0);
+        rdt.weekday = Some(6); // 2000-01-01 is a Saturday
         rdt.dst = Some(DST_SUMMER | DST_ANNOUNCED);
         assert_eq!(rdt.add_minute(), true);
         assert_eq!(rdt.dst, Some(DST_SUMMER | DST_ANNOUNCED)); // add_minute() does not change any DST flag
@@ -991,9 +1317,17 @@ mod tests {
         assert_eq!(rdt.month, Some(1));
         assert_eq!(rdt.year, Some(0));
         assert_eq!(rdt.weekday, Some(6));
+    }
+    #[test]
+    fn test_add_minute_npl_saturday_sunday() {
+        let mut rdt = RadioDateTimeUtils::new(0);
         // Test flipping to min_weekday (NPL), Saturday 6 -> Sunday 0:
         rdt.minute = Some(59);
         rdt.hour = Some(23);
+        rdt.day = Some(1);
+        rdt.month = Some(1);
+        rdt.year = Some(0);
+        rdt.weekday = Some(6); // 2000-01-01 is a Saturday
         rdt.dst = Some(0);
         assert_eq!(rdt.add_minute(), true);
         assert_eq!(rdt.minute, Some(0));
@@ -1002,8 +1336,11 @@ mod tests {
         assert_eq!(rdt.month, Some(1));
         assert_eq!(rdt.year, Some(0));
         assert_eq!(rdt.weekday, Some(0));
+    }
+    #[test]
+    fn test_add_minute_dcf77_sunday_monday() {
         // Test flipping to min_weekday (DCF77), Sunday 7 -> Monday 1:
-        rdt = RadioDateTimeUtils::new(7);
+        let mut rdt = RadioDateTimeUtils::new(7);
         rdt.minute = Some(59);
         rdt.hour = Some(23);
         rdt.day = Some(2);

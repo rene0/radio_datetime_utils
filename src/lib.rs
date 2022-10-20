@@ -1390,7 +1390,6 @@ mod tests {
     #[test]
     fn continue2_leap_second_none_minute() {
         let mut rdt = RadioDateTimeUtils::new(7);
-        // Nothing should happen:
         rdt.minute = Some(0);
         for _ in 0..13 {
             rdt.minute = Some(rdt.minute.unwrap() + 1);
@@ -1400,6 +1399,7 @@ mod tests {
         assert_eq!(rdt.leap_second, Some(LEAP_ANNOUNCED));
         rdt.minute = Some(0);
         rdt.set_leap_second(Some(false), 60 /* not 61 */);
+        // Nothing should happen because of the None minute:
         rdt.minute = None;
         rdt.set_leap_second(Some(true), 61);
         assert_eq!(rdt.leap_second, Some(LEAP_PROCESSED | LEAP_MISSING));

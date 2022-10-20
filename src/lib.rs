@@ -469,7 +469,6 @@ impl RadioDateTimeUtils {
             if self.first_minute
                 || ((self.dst.unwrap() & DST_ANNOUNCED) != 0 && self.minute == Some(0))
             {
-                self.first_minute = false;
                 // Change is valid.
                 if value.unwrap() {
                     self.dst = Some(self.dst.unwrap() | DST_SUMMER);
@@ -483,7 +482,7 @@ impl RadioDateTimeUtils {
         if self.minute == Some(0) && (self.dst.unwrap() & DST_ANNOUNCED) != 0 {
             // DST change processed:
             self.dst = Some(self.dst.unwrap() | DST_PROCESSED);
-        } else {
+        } else if self.minute.is_some() {
             self.dst = Some(self.dst.unwrap() & !DST_PROCESSED);
         }
         // Always reset announcement at the hour:
@@ -491,6 +490,7 @@ impl RadioDateTimeUtils {
             self.dst = Some(self.dst.unwrap() & !DST_ANNOUNCED);
             self.dst_count = 0;
         }
+        self.first_minute = false;
     }
 
     /**

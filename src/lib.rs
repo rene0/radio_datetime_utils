@@ -617,8 +617,8 @@ impl RadioDateTimeUtils {
 #[cfg(test)]
 mod tests {
     use crate::{
-        get_bcd_value, get_parity, time_diff, RadioDateTimeUtils, DST_ANNOUNCED, DST_SUMMER,
-        LEAP_ANNOUNCED, LEAP_MISSING, LEAP_PROCESSED,
+        get_bcd_value, get_parity, time_diff, RadioDateTimeUtils, DST_ANNOUNCED, DST_JUMP,
+        DST_PROCESSED, DST_SUMMER, LEAP_ANNOUNCED, LEAP_MISSING, LEAP_PROCESSED,
     };
 
     #[test]
@@ -1140,8 +1140,162 @@ mod tests {
     }
 
     #[test]
-    fn test_dst() {
-        // TODO implement
+    fn test_dst_some_starting_no_dst_no_announcement_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        // Simple initial minute update, no announcement:
+        rdt.minute = Some(11);
+        rdt.set_dst(Some(false), Some(false), false);
+        assert_eq!(rdt.dst, Some(0)); // no flags
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn test_dst_some_starting_dst_no_announcement_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        // Simple initial minute update, no announcement:
+        rdt.minute = Some(11);
+        rdt.set_dst(Some(true), Some(false), false);
+        assert_eq!(rdt.dst, Some(DST_SUMMER));
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn test_dst_starting_at_new_hour_no_announcement_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        // Simple initial minute update at top-of-hour, no announcement:
+        rdt.minute = Some(0);
+        rdt.set_dst(Some(false), Some(false), true);
+        assert_eq!(rdt.dst, Some(0)); // no flags
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn test_dst_running_no_announcement_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        // A bit further in the hour. no announcement:
+        rdt.minute = Some(15);
+        rdt.minutes_running = 15;
+        rdt.set_dst(Some(false), Some(false), true);
+        assert_eq!(rdt.dst, Some(0)); // no flags
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn test_dst_spurious_announcement_jump() {
+        let mut rdt = RadioDateTimeUtils::new(7);
+        // DST change announced spuriously:
+        rdt.minute = Some(15);
+        rdt.minutes_running = 15;
+        rdt.set_dst(Some(false), Some(true), true);
+        assert_eq!(rdt.dst, Some(0)); // no flags
+        assert_eq!(rdt.dst_count, 1);
+    }
+    #[test]
+    fn test_dst_announced() {
+        let mut rdt = RadioDateTimeUtils::new(7);
+        // Change our mind, the previous announcement was valid:
+        // Do not cheat with self.dst_count:
+        rdt.minute = Some(0);
+        for _ in 0..10 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_dst(Some(false), Some(true), true);
+        }
+        assert_eq!(rdt.dst, Some(DST_ANNOUNCED));
+        assert_eq!(rdt.minutes_running, 10);
+        assert_eq!(rdt.dst_count, 10);
+    }
+    #[test]
+    fn continue_dst_to_summer() {
+        let mut rdt = RadioDateTimeUtils::new(7);
+        // Announcement bit was gone, but there should be enough evidence:
+        rdt.minute = Some(0);
+        for _ in 0..11 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_dst(Some(false), Some(true), true);
+        }
+        assert_eq!(rdt.dst, Some(DST_ANNOUNCED));
+        rdt.minute = Some(0);
+        rdt.set_dst(Some(true), Some(false), true);
+        // Top of hour, so announcement should be reset:
+        assert_eq!(rdt.dst, Some(DST_PROCESSED | DST_SUMMER));
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn continue_dst_to_winter() {
+        let mut rdt = RadioDateTimeUtils::new(7);
+        // Announcement bit was gone, but there should be enough evidence:
+        rdt.minute = Some(0);
+        for _ in 0..12 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_dst(Some(true), Some(true), true);
+        }
+        assert_eq!(rdt.dst, Some(DST_ANNOUNCED | DST_SUMMER));
+        rdt.minute = Some(0);
+        rdt.set_dst(Some(false), Some(false), true);
+        // Top of hour, so announcement should be reset:
+        assert_eq!(rdt.dst, Some(DST_PROCESSED));
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn continue2_dst_none_minute() {
+        let mut rdt = RadioDateTimeUtils::new(7);
+        rdt.minute = Some(0);
+        for _ in 0..13 {
+            rdt.minute = Some(rdt.minute.unwrap() + 1);
+            rdt.minutes_running += 1;
+            rdt.set_dst(Some(false), Some(true), true);
+        }
+        assert_eq!(rdt.dst, Some(DST_ANNOUNCED));
+        rdt.minute = Some(0);
+        rdt.set_dst(Some(true), Some(false), true);
+        // Nothing should change because of the None minute:
+        rdt.minute = None;
+        rdt.set_dst(Some(true), Some(true), true);
+        assert_eq!(rdt.dst, Some(DST_PROCESSED | DST_SUMMER));
+        assert_eq!(rdt.dst_count, 1);
+    }
+    #[test]
+    fn continue_dst_jump_no_dst_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.minute = Some(11);
+        rdt.set_dst(Some(false), Some(false), false);
+        assert_eq!(rdt.dst, Some(0));
+        assert_eq!(rdt.dst_count, 0);
+        rdt.set_dst(Some(true), Some(false), false);
+        assert_eq!(rdt.dst, Some(0)); // DST jumped but we do not care
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn continue_dst_jump_no_dst_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.minute = Some(11);
+        rdt.set_dst(Some(false), Some(false), true);
+        assert_eq!(rdt.dst, Some(0));
+        assert_eq!(rdt.dst_count, 0);
+        rdt.set_dst(Some(true), Some(false), true);
+        assert_eq!(rdt.dst, Some(DST_JUMP)); // DST jumped
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn continue_dst_jump_dst_no_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.minute = Some(11);
+        rdt.set_dst(Some(true), Some(false), false);
+        assert_eq!(rdt.dst, Some(DST_SUMMER));
+        assert_eq!(rdt.dst_count, 0);
+        rdt.set_dst(Some(false), Some(false), false);
+        assert_eq!(rdt.dst, Some(DST_SUMMER)); // DST jumped but we do not care
+        assert_eq!(rdt.dst_count, 0);
+    }
+    #[test]
+    fn continue_dst_jump_dst_jump() {
+        let mut rdt = RadioDateTimeUtils::new(0);
+        rdt.minute = Some(11);
+        rdt.set_dst(Some(true), Some(false), true);
+        assert_eq!(rdt.dst, Some(DST_SUMMER));
+        assert_eq!(rdt.dst_count, 0);
+        rdt.set_dst(Some(false), Some(false), true);
+        assert_eq!(rdt.dst, Some(DST_JUMP | DST_SUMMER)); // DST jumped
+        assert_eq!(rdt.dst_count, 0);
     }
 
     #[test]

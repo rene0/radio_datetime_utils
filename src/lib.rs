@@ -132,9 +132,7 @@ pub struct RadioDateTimeUtils {
     hour: Option<u8>,
     minute: Option<u8>,
     dst: Option<u8>,
-    dst_count: u8, // internal counter for set_dst()
     leap_second: Option<u8>,
-    leap_second_count: u8, // internal counter for set_leap_second()
     jump_year: bool,
     jump_month: bool,
     jump_day: bool,
@@ -143,8 +141,10 @@ pub struct RadioDateTimeUtils {
     jump_minute: bool,
     min_weekday: u8,
     max_weekday: u8,
-    minutes_running: u8, // internal counter for set_dst() and set_leap_second()
-    first_minute: bool,  // internal flag for set_dst()
+    minutes_running: u8,   // internal counter for set_dst() and set_leap_second()
+    dst_count: u8,         // internal counter for set_dst()
+    first_minute: bool,    // internal flag for set_dst()
+    leap_second_count: u8, // internal counter for set_leap_second()
 }
 
 impl RadioDateTimeUtils {

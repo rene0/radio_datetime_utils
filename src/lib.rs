@@ -531,7 +531,7 @@ impl RadioDateTimeUtils {
                 self.leap_second = Some(self.leap_second.unwrap() & !LEAP_MISSING);
             }
         } else if self.minute.is_some() {
-            self.leap_second = Some(self.leap_second.unwrap() & !LEAP_PROCESSED);
+            self.leap_second = Some(self.leap_second.unwrap() & !LEAP_PROCESSED & !LEAP_MISSING);
         }
         // Always reset announcement at the hour:
         if self.minute == Some(0) {

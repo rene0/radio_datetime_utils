@@ -1352,7 +1352,7 @@ mod tests {
         assert_eq!(rdt.leap_second_count, 10);
     }
     #[test]
-    fn continue_leap_second_missing() {
+    fn continue2_leap_second_missing() {
         let mut rdt = RadioDateTimeUtils::new(7);
         // Missing leap second.
         // Announcement bit was gone, but there should be enough evidence:
@@ -1368,6 +1368,10 @@ mod tests {
         // Top of hour, so announcement should be reset:
         assert_eq!(rdt.leap_second, Some(LEAP_PROCESSED | LEAP_MISSING));
         assert_eq!(rdt.leap_second_count, 0);
+        rdt.minute = Some(1);
+        // New hour has started:
+        rdt.set_leap_second(Some(false), 60);
+        assert_eq!(rdt.leap_second, Some(0));
     }
     #[test]
     fn continue_leap_second_present() {

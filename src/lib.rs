@@ -548,7 +548,7 @@ impl RadioDateTimeUtils {
      */
     pub fn bump_minutes_running(&mut self) {
         self.minutes_running += 1;
-        if self.minutes_running == 60 {
+        if self.minute == Some(0) {
             self.minutes_running = 0;
         }
     }

@@ -47,7 +47,7 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     while idx != (stop as isize + step) as usize {
         let bit = bit_buffer[idx];
         bit?;
-        bcd += mult * if bit.unwrap() { 1 } else { 0 };
+        bcd += mult * bit.unwrap() as u8;
         mult *= 2;
         if mult == 16 {
             if bcd > 9 {

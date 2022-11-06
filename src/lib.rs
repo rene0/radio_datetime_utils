@@ -584,6 +584,7 @@ impl RadioDateTimeUtils {
                 day - 7 * ((day - 28) / 7) + 1 - wd == 28
             }
         }
+        // We need to check for day being 1..=31 here because set_day() uses this function in its input checks.
         if self.year.is_none()
             || self.month.is_none()
             || self.weekday.is_none()

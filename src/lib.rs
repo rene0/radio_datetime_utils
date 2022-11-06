@@ -584,32 +584,27 @@ impl RadioDateTimeUtils {
                 day - 7 * ((day - 28) / 7) + 1 - wd == 28
             }
         }
-        if let Some(s_year) = self.year {
-            if let Some(s_month) = self.month {
-                if let Some(s_weekday) = self.weekday {
-                    if !(1..=31).contains(&day) {
-                        None
-                    } else if s_month == 2 {
-                        if (s_year != 0 && s_year % 4 == 0)
-                            || (s_year == 0 && is_leap_century(day, s_weekday))
-                        {
-                            Some(29)
-                        } else {
-                            Some(28)
-                        }
-                    } else if s_month == 4 || s_month == 6 || s_month == 9 || s_month == 11 {
-                        Some(30)
-                    } else {
-                        Some(31)
-                    }
-                } else {
-                    None
-                }
+        if self.year.is_none()
+            || self.month.is_none()
+            || self.weekday.is_none()
+            || !(1..=31).contains(&day)
+        {
+            return None;
+        }
+        let s_year = self.year.unwrap();
+        let s_month = self.month.unwrap();
+        let s_weekday = self.weekday.unwrap();
+        if s_month == 2 {
+            if (s_year != 0 && s_year % 4 == 0) || (s_year == 0 && is_leap_century(day, s_weekday))
+            {
+                Some(29)
             } else {
-                None
+                Some(28)
             }
+        } else if s_month == 4 || s_month == 6 || s_month == 9 || s_month == 11 {
+            Some(30)
         } else {
-            None
+            Some(31)
         }
     }
 }

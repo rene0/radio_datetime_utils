@@ -39,9 +39,8 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     }
     let mut bcd = 0;
     let mut mult = 1;
-    // Index the bits using a manual loop instead of enumerating them in a range. Doing so obsoletes
-    // the need to first flip the range if start > stop which seemed only be possible using
-    // heapless:Vec when in no_std mode. This dependency is now removed.
+    // Index the bits using a manual loop instead of enumerating them in a range.
+    // Doing so obsoletes the need to first flip the range if start > stop.
     let mut idx = start;
     let step: isize = if start < stop { 1 } else { -1 };
     // The test value for idx is usize::MAX if stop is 0 but we stop just in time.

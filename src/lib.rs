@@ -581,7 +581,7 @@ impl RadioDateTimeUtils {
             if day < 29 {
                 day + 7 * ((28 - day) / 7) + 8 - wd == 28
             } else {
-                day - 7 * ((day - 28) / 7) + 1 - wd == 28
+                wd == 2 // Tuesday xx00-02-29
             }
         }
         // We need to check for day being 1..=31 here because set_day() uses this function in its input checks.

@@ -579,7 +579,9 @@ impl RadioDateTimeUtils {
             // Week day 1 is a Monday, assume this is a leap year.
             // If so, we should reach Monday xx00-02-28
             if day < 29 {
-                day + 7 * ((28 - day) / 7) + 8 - wd == 28
+                // (8 - wd) == ((8-1)..=(8-7)) == (7..=1) --> Monday=7, Tuesday=6, .., Sunday=1
+                // Transpose day to 22..=28, then check if the result plus the inverted day-of-week adds up to 28
+                day + 7 * ((28 - day) / 7) + (8 - wd) == 28
             } else {
                 wd == 2 // Tuesday xx00-02-29
             }

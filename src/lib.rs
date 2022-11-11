@@ -45,9 +45,8 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     let step: isize = if start < stop { 1 } else { -1 };
     // The test value for idx is usize::MAX if stop is 0 but we stop just in time.
     while idx != (stop as isize + step) as usize {
-        let bit = bit_buffer[idx];
-        bit?;
-        bcd += mult * bit.unwrap() as u8;
+        let bit = bit_buffer[idx]?;
+        bcd += mult * bit as u8;
         mult *= 2;
         if mult == 16 {
             if bcd > 9 {
@@ -80,13 +79,13 @@ pub fn get_parity(
     parity: Option<bool>,
 ) -> Option<bool> {
     parity?;
-    let mut par = parity.unwrap();
+    let mut s_parity = parity.unwrap();
     let (p0, p1) = min_max(start, stop);
     for bit in &bit_buffer[p0..=p1] {
         (*bit)?;
-        par ^= bit.unwrap();
+        s_parity ^= bit.unwrap();
     }
-    Some(par)
+    Some(s_parity)
 }
 
 /**

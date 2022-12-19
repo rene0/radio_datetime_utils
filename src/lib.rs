@@ -170,7 +170,7 @@ impl RadioDateTimeUtils {
             jump_weekday: false,
             jump_hour: false,
             jump_minute: false,
-            min_weekday: if sunday == 0 { 0 } else { 1 },
+            min_weekday: (sunday != 0) as u8,
             max_weekday: if sunday == 7 { 7 } else { 6 },
             minutes_running: 0,
             first_minute: true,

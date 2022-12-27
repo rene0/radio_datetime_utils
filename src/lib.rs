@@ -248,7 +248,7 @@ impl RadioDateTimeUtils {
     }
 
     /**
-     * Adds one minute to the current date and time, returns if the operation succeeded.
+     * Add one minute to the current date and time, return if the operation succeeded.
      *
      * * Years are limited to 2 digits, so this function wraps after 100 years.
      */

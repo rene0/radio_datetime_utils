@@ -435,30 +435,6 @@ impl RadioDateTimeUtils {
     /// # Arguments
     /// * `day` - day of the month in February '00, used to see if `year` is a leap year
     fn last_day(&self, day: u8) -> Option<u8> {
-        /// Check if the century based on the given date is divisible by 400.
-        ///
-        ///  Based on xx00-02-28 is a Monday <=> xx00 is a leap year
-        ///
-        /// # Arguments
-        ///  * `day` - day of the month in February '00
-        ///  * `weekday` - day of the week in February '00
-        #[inline]
-        fn is_leap_century(day: u8, weekday: u8) -> bool {
-            let mut wd = weekday % 7;
-            if wd == 0 {
-                wd = 7;
-            }
-
-            // Week day 1 is a Monday, assume this is a leap year.
-            // If so, we should reach Monday xx00-02-28
-            if day < 29 {
-                // (8 - wd) == ((8-1)..=(8-7)) == (7..=1) --> Monday=7, Tuesday=6, .., Sunday=1
-                // Transpose day to 22..=28, then check if the result plus the inverted day-of-week adds up to 28
-                day + 7 * ((28 - day) / 7) + (8 - wd) == 28
-            } else {
-                wd == 2 // Tuesday xx00-02-29
-            }
-        }
         // We need to check for day being 1..=31 here because set_day() uses this function in its input checks.
         if self.year.is_none()
             || self.month.is_none()
@@ -471,7 +447,8 @@ impl RadioDateTimeUtils {
         let s_month = self.month.unwrap();
         let s_weekday = self.weekday.unwrap();
         if s_month == 2 {
-            if (s_year != 0 && s_year % 4 == 0) || (s_year == 0 && is_leap_century(day, s_weekday))
+            if (s_year != 0 && s_year % 4 == 0)
+                || (s_year == 0 && RadioDateTimeUtils::is_leap_century(day, s_weekday))
             {
                 Some(29)
             } else {
@@ -481,6 +458,31 @@ impl RadioDateTimeUtils {
             Some(30)
         } else {
             Some(31)
+        }
+    }
+
+    /// Check if the century based on the given date is divisible by 400.
+    ///
+    ///  Based on xx00-02-28 is a Monday <=> xx00 is a leap year
+    ///
+    /// # Arguments
+    ///  * `day` - day of the month in February '00
+    ///  * `weekday` - day of the week in February '00
+    #[inline]
+    fn is_leap_century(day: u8, weekday: u8) -> bool {
+        let mut wd = weekday % 7;
+        if wd == 0 {
+            wd = 7;
+        }
+
+        // Week day 1 is a Monday, assume this is a leap year.
+        // If so, we should reach Monday xx00-02-28
+        if day < 29 {
+            // (8 - wd) == ((8-1)..=(8-7)) == (7..=1) --> Monday=7, Tuesday=6, .., Sunday=1
+            // Transpose day to 22..=28, then check if the result plus the inverted day-of-week adds up to 28
+            day + 7 * ((28 - day) / 7) + (8 - wd) == 28
+        } else {
+            wd == 2 // Tuesday xx00-02-29
         }
     }
 }

@@ -1,13 +1,11 @@
-/**
- * Return the difference in microseconds between two timestamps.
- *
- * This function takes wrapping of the parameters into account,
- * as they are u32, so they wrap each 71m35.
- *
- * # Arguments
- * * `t0` - old timestamp in microseconds
- * * `t1` - new timestamp in microseconds
- */
+/// Return the difference in microseconds between two timestamps.
+///
+/// This function takes wrapping of the parameters into account,
+/// as they are u32, so they wrap each 71m35.
+///
+/// # Arguments
+/// * `t0` - old timestamp in microseconds
+/// * `t1` - new timestamp in microseconds
 pub fn time_diff(t0: u32, t1: u32) -> u32 {
     if t1 >= t0 {
         t1 - t0
@@ -18,14 +16,12 @@ pub fn time_diff(t0: u32, t1: u32) -> u32 {
     }
 }
 
-/**
- * Returns the BCD-encoded value of the given buffer over the given range, or None if the input is invalid.
- *
- * # Arguments
- * * `bit_buffer` - buffer containing the bits
- * * `start` - start bit position (least significant)
- * * `stop` - stop bit position (most significant)
- */
+/// Returns the BCD-encoded value of the given buffer over the given range, or None if the input is invalid.
+///
+/// # Arguments
+/// * `bit_buffer` - buffer containing the bits
+/// * `start` - start bit position (least significant)
+/// * `stop` - stop bit position (most significant)
 pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> Option<u8> {
     const MAX_RANGE: usize = 8;
     let (p0, p1) = min_max(start, stop);
@@ -58,15 +54,13 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     }
 }
 
-/**
- * Returns even parity of the given buffer over the given range, or None if the input is invalid.
- *
- * # Arguments
- * * `bit_buffer` - buffer containing the bits to check.
- * * `start` - start bit position
- * * `stop` - stop bit position
- * * `parity` - parity bit value
- */
+/// Returns even parity of the given buffer over the given range, or None if the input is invalid.
+///
+/// # Arguments
+/// * `bit_buffer` - buffer containing the bits to check.
+/// * `start` - start bit position
+/// * `stop` - stop bit position
+/// `parity` - parity bit value
 pub fn get_parity(
     bit_buffer: &[Option<bool>],
     start: usize,
@@ -83,13 +77,11 @@ pub fn get_parity(
     Some(s_parity)
 }
 
-/**
- * Return a tuple of the two parameters in ascending order.
- *
- * # Arguments
- * * `a` - first argument
- * * `b` - second argument
- */
+/// Return a tuple of the two parameters in ascending order.
+///
+/// # Arguments
+/// * `a` - first argument
+/// * `b` - second argument
 #[inline]
 fn min_max(a: usize, b: usize) -> (usize, usize) {
     if a < b {

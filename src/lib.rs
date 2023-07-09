@@ -50,7 +50,7 @@ impl RadioDateTimeUtils {
     /// Initialize a new RadioDateTimeUtils instance
     ///
     /// # Arguments
-    /// * `sunday` - the numeric value of Sunday, i.e. 7 for DCF77 or 0 for NPL
+    /// * `sunday` - the numeric value of Sunday, i.e. 7 for DCF77 or 0 for MSF
     pub fn new(sunday: u8) -> Self {
         Self {
             year: None,
@@ -898,26 +898,26 @@ mod tests {
     }
     #[test]
     fn test_last_day0_century_leap() {
-        let mut npl = RadioDateTimeUtils::new(0);
-        npl.year = Some(0);
-        npl.month = Some(2);
-        npl.weekday = Some(0);
-        assert_eq!(npl.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
+        let mut msf = RadioDateTimeUtils::new(0);
+        msf.year = Some(0);
+        msf.month = Some(2);
+        msf.weekday = Some(0);
+        assert_eq!(msf.last_day(6), Some(29)); // century-leap-year, Sunday 2000-02-06
     }
     #[test]
     fn test_last_day0_too_large_day() {
-        let mut npl = RadioDateTimeUtils::new(0);
-        npl.year = Some(0);
-        npl.month = Some(2);
-        npl.weekday = Some(0);
-        assert_eq!(npl.last_day(32), None); // invalid input, Sunday 00-02-32
+        let mut msf = RadioDateTimeUtils::new(0);
+        msf.year = Some(0);
+        msf.month = Some(2);
+        msf.weekday = Some(0);
+        assert_eq!(msf.last_day(32), None); // invalid input, Sunday 00-02-32
     }
     #[test]
     fn test_last_day0_none_weekday() {
-        let mut npl = RadioDateTimeUtils::new(0);
-        npl.year = Some(0);
-        npl.month = Some(2);
-        assert_eq!(npl.last_day(6), None); // invalid input, None-day 00-02-06
+        let mut msf = RadioDateTimeUtils::new(0);
+        msf.year = Some(0);
+        msf.month = Some(2);
+        assert_eq!(msf.last_day(6), None); // invalid input, None-day 00-02-06
     }
 
     #[test]
@@ -1258,9 +1258,9 @@ mod tests {
         assert_eq!(rdt.weekday, Some(6));
     }
     #[test]
-    fn test_add_minute_npl_saturday_sunday() {
+    fn test_add_minute_msf_saturday_sunday() {
         let mut rdt = RadioDateTimeUtils::new(0);
-        // Test flipping to min_weekday (NPL), Saturday 6 -> Sunday 0:
+        // Test flipping to min_weekday (MSF), Saturday 6 -> Sunday 0:
         rdt.minute = Some(59);
         rdt.hour = Some(23);
         rdt.day = Some(1);

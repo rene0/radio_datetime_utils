@@ -82,7 +82,6 @@ pub fn get_parity(
 /// # Arguments
 /// * `a` - first argument
 /// * `b` - second argument
-#[inline]
 fn min_max(a: usize, b: usize) -> (usize, usize) {
     if a < b {
         (a, b)

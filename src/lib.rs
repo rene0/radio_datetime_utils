@@ -179,6 +179,7 @@ impl RadioDateTimeUtils {
             && self.hour.is_some()
             && self.minute.is_some()
     }
+
     /// Add one minute to the current date and time, return if the operation succeeded.
     ///
     /// * Years are limited to 2 digits, so this function wraps after 100 years.

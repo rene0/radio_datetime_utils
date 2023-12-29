@@ -21,6 +21,10 @@ pub const LEAP_PROCESSED: u8 = 2;
 /// Leap second is unexpectedly absent
 pub const LEAP_MISSING: u8 = 4;
 
+/// Size of bit buffer in seconds plus one spare because we cannot know
+/// which method accessing the buffer is called after increase_second().
+pub const BIT_BUFFER_SIZE: usize = 61 + 1;
+
 /// Represents a date and time transmitted over radio.
 #[derive(Clone, Copy)]
 pub struct RadioDateTimeUtils {
@@ -47,6 +51,25 @@ pub struct RadioDateTimeUtils {
 }
 
 impl RadioDateTimeUtils {
+    /// Increase or wrap the passed second counter.
+    ///
+    /// Returns if the second counter was increased/wrapped normally (true)
+    /// or due to an overflow (false).
+    pub fn increase_second(second: &mut u8, new_minute: bool, minute_length: u8) -> bool {
+        if new_minute {
+            *second = 0;
+            true
+        } else {
+            *second += 1;
+            // wrap in case we missed the minute marker to prevent index-out-of-range
+            if *second == minute_length || (*second as usize) == BIT_BUFFER_SIZE {
+                *second = 0;
+                return false;
+            }
+            true
+        }
+    }
+
     /// Initialize a new RadioDateTimeUtils instance
     ///
     /// # Arguments

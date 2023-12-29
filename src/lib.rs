@@ -146,6 +146,16 @@ impl RadioDateTimeUtils {
         self.jump_minute
     }
 
+    /// Returns if the current date/time is valid (date, time, DST are all `is_some()`).
+    pub fn is_valid(&self) -> bool {
+        self.dst.is_some()
+            && self.year.is_some()
+            && self.month.is_some()
+            && self.day.is_some()
+            && self.weekday.is_some()
+            && self.hour.is_some()
+            && self.minute.is_some()
+    }
     /// Add one minute to the current date and time, return if the operation succeeded.
     ///
     /// * Years are limited to 2 digits, so this function wraps after 100 years.

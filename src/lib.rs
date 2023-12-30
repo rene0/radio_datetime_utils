@@ -180,6 +180,19 @@ impl RadioDateTimeUtils {
             && self.minute.is_some()
     }
 
+    /// Clear all jump values.
+    pub fn clear_jumps(&mut self) {
+        self.jump_year = false;
+        self.jump_month = false;
+        self.jump_day = false;
+        self.jump_weekday = false;
+        self.jump_hour = false;
+        self.jump_minute = false;
+        if self.dst.is_some() {
+            self.dst = Some(self.dst.unwrap() & !DST_JUMP);
+        }
+    }
+
     /// Add one minute to the current date and time, return if the operation succeeded.
     ///
     /// * Years are limited to 2 digits, so this function wraps after 100 years.

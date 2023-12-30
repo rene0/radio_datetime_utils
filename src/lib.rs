@@ -523,6 +523,63 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_increase_second_regular() {
+        let mut second = 54;
+        assert_eq!(
+            RadioDateTimeUtils::increase_second(&mut second, false, 60),
+            true
+        );
+        assert_eq!(second, 55);
+    }
+    #[test]
+    fn test_increase_second_new_minute() {
+        let mut second = 54; // can be less than minute_length-1 during the first partial minute
+        assert_eq!(
+            RadioDateTimeUtils::increase_second(&mut second, true, 60),
+            true
+        );
+        assert_eq!(second, 0);
+    }
+    #[test]
+    fn test_increase_second_overflow_minute_length_hit() {
+        let mut second = 59;
+        assert_eq!(
+            RadioDateTimeUtils::increase_second(&mut second, false, 60),
+            false
+        );
+        assert_eq!(second, 0);
+    }
+    #[test]
+    #[should_panic] // caller is lagging, this should never happen
+    fn test_increase_second_overflow_minute_length_over() {
+        let mut second = 60;
+        assert_eq!(
+            RadioDateTimeUtils::increase_second(&mut second, false, 60),
+            false
+        );
+        assert_eq!(second, 0);
+    }
+    #[test]
+    fn test_increase_second_overflow_buffer_hit() {
+        let mut second = (BIT_BUFFER_SIZE - 1) as u8;
+        assert_eq!(
+            RadioDateTimeUtils::increase_second(&mut second, false, 60),
+            false
+        );
+        assert_eq!(second, 0);
+    }
+    #[test]
+    #[should_panic] // caller is lagging, this should never happen
+    fn test_increase_second_overflow_buffer_over() {
+        let mut second = BIT_BUFFER_SIZE as u8;
+        assert_eq!(
+            RadioDateTimeUtils::increase_second(&mut second, false, 60),
+            false
+        );
+        assert_eq!(second, 0);
+    }
+
+    #[test]
     fn test_set_year_some_invalid_jump() {
         let mut rdt = RadioDateTimeUtils::new(0);
         rdt.set_year(Some(22), false, true);

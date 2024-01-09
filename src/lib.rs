@@ -55,6 +55,11 @@ impl RadioDateTimeUtils {
     ///
     /// Returns if the second counter was increased/wrapped normally (true)
     /// or due to an overflow (false).
+    ///
+    /// # Arguments
+    /// * `second` - the value of the current second (so normally 0..59)
+    /// * `new_minute` - whether a new minute arrived
+    /// * `minute_length` - the length of this minute in seconds
     pub fn increase_second(second: &mut u8, new_minute: bool, minute_length: u8) -> bool {
         if new_minute {
             *second = 0;

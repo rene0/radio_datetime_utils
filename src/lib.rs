@@ -69,9 +69,10 @@ impl RadioDateTimeUtils {
             // wrap in case we missed the minute marker to prevent index-out-of-range
             if *second == minute_length || (*second as usize) == BIT_BUFFER_SIZE {
                 *second = 0;
-                return false;
+                false
+            } else {
+                true
             }
-            true
         }
     }
 

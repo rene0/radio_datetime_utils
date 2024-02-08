@@ -54,7 +54,8 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     }
 }
 
-/// Returns even parity of the given buffer over the given range, or None if the input is invalid.
+/// Returns parity of the given buffer over the given range, or None if the input is invalid.
+/// Should be Some(false) for even parity and Some(true) for odd parity.
 ///
 /// # Arguments
 /// * `bit_buffer` - buffer containing the bits to check.

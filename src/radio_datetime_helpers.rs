@@ -34,7 +34,7 @@ pub fn get_bcd_value(bit_buffer: &[Option<bool>], start: usize, stop: usize) -> 
     // Doing so obsoletes the need to first flip the range if start > stop.
     let mut idx = start;
     let step: isize = if start < stop { 1 } else { -1 };
-    // The test value for idx is usize::MAX if stop is 0 but we stop just in time.
+    // The test value for idx is usize::MAX if stop is 0, but we stop just in time.
     while idx != (stop as isize + step) as usize {
         let bit = bit_buffer[idx]?;
         bcd += mult * bit as u8;

@@ -203,13 +203,7 @@ impl RadioDateTimeUtils {
     ///
     /// * Years are limited to 2 digits, so this function wraps after 100 years.
     pub fn add_minute(&mut self) -> bool {
-        if self.minute.is_none()
-            || self.hour.is_none()
-            || self.day.is_none()
-            || self.weekday.is_none()
-            || self.month.is_none()
-            || self.year.is_none()
-            || self.dst.is_none()
+        if !self.is_valid()
         {
             return false;
         }
